@@ -1,10 +1,11 @@
-import 'package:app/home.dart';
+import 'package:app/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app/register.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'services/auth_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,13 +18,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Login',
+      title: 'QueroDoce',
       theme: ThemeData(
         fontFamily: 'Serif',
         scaffoldBackgroundColor: Color(0xFFFFF7FC),
       ),
-      home: const LoginPage(),
+      home: const AuthWrapper(),
     );
+  }
+}
+
+class AuthWrapper extends StatelessWidget {
+  const AuthWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    if (AuthService.isLoggedIn) {
+      return const HomePage();
+    }
+    return const LoginPage();
   }
 }
 
@@ -67,19 +80,36 @@ class _LoginPageState extends State<LoginPage> {
         final data = json.decode(response.body);
 
         if (data["Mensagem"] == "Login permitido") {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
+          // Usar o AuthService para fazer login
+          final loginSucesso = await AuthService.login(email, senha);
+          
+          if (loginSucesso) {
+            if (context.mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            }
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Erro ao fazer login")),
+              );
+            }
+          }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(data["Mensagem"] ?? "Erro no login")),
-          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(data["Mensagem"] ?? "Erro no login")),
+            );
+          }
         }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Erro no servidor: ${response.statusCode}")),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Erro no servidor: ${response.statusCode}")),
+          );
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(
