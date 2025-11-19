@@ -87,15 +87,30 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _loading = true);
 
     try {
-      final url = Uri.parse(
-        "http://200.19.1.19/usuario01/Controller/CrudUsuario.php"
-        "?oper=Inserir&nm_pessoa=$nome&nu_cpf=$cpf&nu_cel=$celular&ds_email=$email&ds_senha=$senha&nu_cep=$cep&nu_endereco=$numeroEndereco",
+      final url = Uri.http(
+        '200.19.1.19',
+        '/usuario01/Controller/CrudUsuario.php',
+        {
+          'oper': 'Inserir',
+          'nm_pessoa': nome,
+          'nu_cpf': cpf,
+          'nu_cel': celular,
+          'ds_email': email,
+          'ds_senha': senha,
+          'nu_cep': cep,
+          'nu_endereco': numeroEndereco,
+        },
       );
 
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final responseBody = response.body.trim();
+        if (responseBody.isEmpty) {
+          throw Exception('Resposta vazia do servidor');
+        }
+        
+        final data = json.decode(responseBody);
 
         if (data["Mensagem"] == "Usuario adicionado com sucesso") {
           Navigator.push(
@@ -113,9 +128,14 @@ class _RegisterPageState extends State<RegisterPage> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Erro de conexão: $e")));
+      String errorMessage = "Erro de conexão: $e";
+      if (e.toString().contains("FormatException") || 
+          e.toString().contains("JSON")) {
+        errorMessage = "Erro ao processar resposta do servidor. Verifique sua conexão.";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
     } finally {
       setState(() => _loading = false);
     }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app/register.dart';
+import 'package:app/pages/forgot_password_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'services/auth_service.dart';
@@ -69,15 +70,29 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
 
     try {
-      final url = Uri.parse(
-        "http://200.19.1.19/usuario01/Controller/CrudUsuario.php"
-        "?oper=Login&ds_email=$email&ds_senha=$senha",
+      final url = Uri.http(
+        '200.19.1.19',
+        '/usuario01/Controller/CrudUsuario.php',
+        {
+          'oper': 'Login',
+          'ds_email': email,
+          'ds_senha': senha,
+        },
       );
 
       final response = await http.get(url);
 
+      print('DEBUG Login - URL: $url');
+      print('DEBUG Login - Status: ${response.statusCode}');
+      print('DEBUG Login - Body: ${response.body}');
+
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final responseBody = response.body.trim();
+        if (responseBody.isEmpty) {
+          throw Exception('Resposta vazia do servidor');
+        }
+        
+        final data = json.decode(responseBody);
 
         if (data["Mensagem"] == "Login permitido") {
           // Usar o AuthService para fazer login
@@ -351,7 +366,12 @@ class _LoginPageState extends State<LoginPage> {
                         alignment: Alignment.centerRight,
                         child: GestureDetector(
                           onTap: () {
-                            // colocar camiinho para esqueceu a senha quando tiver!!!!!
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ForgotPasswordPage(),
+                              ),
+                            );
                           },
                           child: Text(
                             "Esqueceu a senha?",
