@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:html' as html;
 import 'dart:ui_web' as ui_web;
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import '../models/produto.dart';
 import '../models/categoria.dart';
 import '../models/banner.dart';
@@ -12,6 +14,8 @@ import '../controllers/pessoa_controller.dart';
 import '../services/auth_service.dart';
 import 'product_page.dart';
 import 'cart_page.dart';
+import 'search_page.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -40,8 +44,38 @@ class _HomePageState extends State<HomePage> {
     
     final usuario = AuthService.usuarioLogado;
     if (usuario != null) {
-      final enderecoData = await PessoaController.buscarEndereco(usuario.idPessoa);
-      setState(() => endereco = enderecoData ?? usuario.enderecoFormatado);
+      // Busca a rua/logradouro via CEP
+      String? ruaLogradouro;
+      if (usuario.nuCep != null && usuario.nuCep.isNotEmpty) {
+        try {
+          final cep = usuario.nuCep.replaceAll(RegExp(r'\D'), '');
+          if (cep.length == 8) {
+            final url = Uri.parse('https://viacep.com.br/ws/$cep/json/');
+            final response = await http.get(url);
+            
+            if (response.statusCode == 200) {
+              final data = json.decode(response.body);
+              if (data['erro'] == null && data['logradouro'] != null) {
+                ruaLogradouro = data['logradouro'].toString().trim();
+              }
+            }
+          }
+        } catch (e) {
+          print('Erro ao consultar CEP: $e');
+        }
+      }
+      
+      // Monta o endereço completo: rua/logradouro + número
+      if (ruaLogradouro != null && ruaLogradouro.isNotEmpty) {
+        final numero = usuario.nuEndereco != null && usuario.nuEndereco! > 0 
+            ? ', ${usuario.nuEndereco}' 
+            : '';
+        setState(() => endereco = '$ruaLogradouro$numero');
+      } else {
+        // Fallback para o endereço formatado original
+        final enderecoData = await PessoaController.buscarEndereco(usuario.idPessoa);
+        setState(() => endereco = enderecoData ?? usuario.enderecoFormatado);
+      }
     }
 
     final produtosData = await ProdutoController.listarProdutosRecentes();
@@ -111,42 +145,45 @@ class _HomePageState extends State<HomePage> {
             ),
 
             // Banner
-            if (banner != null)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                height: 150,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF2BA0),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Stack(
-                  children: [
-                    // Imagem do banner (se houver)
-                    if (banner!.nmImagem.isNotEmpty)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: _buildHtmlImage(_getImageUrl(banner!.nmImagem)),
-                      ),
-                    // Texto do banner
-                    Positioned(
-                      right: 16,
-                      top: 0,
-                      bottom: 0,
-                      child: Center(
-                        child: Text(
-                          "Bateu a vontade?\nPede um docinho!",
-                          style: GoogleFonts.pixelifySans(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w400,
-                          ),
-                          textAlign: TextAlign.right,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              height: 150,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF2BA0),
+                borderRadius: BorderRadius.circular(16),
               ),
+              child: Stack(
+                children: [
+                  // Imagem do banner local
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      'assets/images/banner.png',
+                      width: double.infinity,
+                      height: 150,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  // Texto do banner
+                  Positioned(
+                    right: 16,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      // child: Text(
+                      //   "Bateu a vontade?\nPede um docinho!",
+                      //   style: GoogleFonts.pixelifySans(
+                      //     fontSize: 18,
+                      //     color: Colors.white,
+                      //     fontWeight: FontWeight.w400,
+                      //   ),
+                      //   textAlign: TextAlign.right,
+                      // ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
             // Categorias (badges)
             Container(
@@ -217,14 +254,24 @@ class _HomePageState extends State<HomePage> {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             _buildNavItem(Icons.home, "Inicio", true, () {}),
-            _buildNavItem(Icons.search, "Busca", false, () {}),
+            _buildNavItem(Icons.search, "Busca", false, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SearchPage()),
+              );
+            }),
             _buildNavItem(Icons.shopping_bag, "Sacola", false, () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const CartPage()),
               );
             }),
-            _buildNavItem(Icons.person, "Perfil", false, () {}),
+            _buildNavItem(Icons.person, "Perfil", false, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            }),
           ],
         ),
       ),
