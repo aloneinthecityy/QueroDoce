@@ -1,15 +1,21 @@
+import 'dart:convert';
+
+import 'package:app/controllers/empresa_controller.dart';
+import 'package:app/controllers/pessoa_controller.dart';
 import 'package:app/models/carrinho_item.dart';
+import 'package:app/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'checkout_page.dart'; // Próxima tela
-// Para acessar os getters de subtotal/total
+import 'checkout_page.dart';
 
 class AddressPage extends StatefulWidget {
   final List<CarrinhoItem> itens;
   final double subtotal;
   final double taxaEntrega;
   final double total;
+  final int idEmpresa;
 
   const AddressPage({
     super.key,
@@ -17,6 +23,7 @@ class AddressPage extends StatefulWidget {
     required this.subtotal,
     required this.taxaEntrega,
     required this.total,
+    required this.idEmpresa,
   });
 
   @override
@@ -24,18 +31,123 @@ class AddressPage extends StatefulWidget {
 }
 
 class _AddressPageState extends State<AddressPage> {
-  // 0: Entrega, 1: Retirada na loja
-  int _selectedDeliveryOption = 0; 
-  // Endereço e loja de exemplo (devem vir de models/controllers reais)
-  final String _enderecoEntrega = "Rua Goiabeira, 208\nJardim do Bosque - Casa";
-  final String _nomeLoja = "Gleiciane Bolos e Cia"; 
-  final String _enderecoLoja = "Rua do Comércio, 500\nCentro - Loja 10"; 
+  int _opcaoEntrega = 0; // 0: Entrega, 1: Retirada na loja
+  String _enderecoEntrega = "";
+  String _nomeLoja = "";
+  String _enderecoLoja = "";
+  bool isLoading = true;
 
-  // Formatador de moeda
-  final _currencyFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+  late final NumberFormat _currencyFormat;
+  late int idEmpresa;
+
+  @override
+  void initState() {
+    super.initState();
+    _currencyFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+    idEmpresa = widget.idEmpresa;
+    _carregarDados();
+  }
+
+  Future<void> _carregarDados() async {
+    setState(() => isLoading = true);
+
+    final usuario = AuthService.usuarioLogado;
+
+    try {
+      if (usuario != null) {
+        String? ruaLogradouro;
+
+        if (usuario.nuCep.isNotEmpty) {
+          try {
+            final cep = usuario.nuCep.replaceAll(RegExp(r'\D'), '');
+
+            if (cep.length == 8) {
+              final url = Uri.parse('https://viacep.com.br/ws/$cep/json/');
+              final response = await http.get(url);
+
+              if (response.statusCode == 200) {
+                final data = json.decode(response.body);
+
+                if (data['erro'] == null && data['logradouro'] != null) {
+                  ruaLogradouro = data['logradouro'].toString().trim();
+                }
+              }
+            }
+          } catch (e) {
+            print('Erro ao consultar CEP: $e');
+          }
+        }
+
+        // ====== MONTA ENDEREÇO DO USUÁRIO ======
+        if (ruaLogradouro != null && ruaLogradouro.isNotEmpty) {
+          final numero = (usuario.nuEndereco != null && usuario.nuEndereco! > 0)
+              ? ', ${usuario.nuEndereco}'
+              : '';
+
+          _enderecoEntrega = '$ruaLogradouro$numero';
+        } else {
+          final enderecoData = await PessoaController.buscarEndereco(
+            usuario.idPessoa,
+          );
+
+          _enderecoEntrega = enderecoData ?? usuario.enderecoFormatado;
+        }
+      }
+
+      final loja = await EmpresaController.buscarEmpresa(idEmpresa);
+
+      if (loja != null) {
+        _nomeLoja = loja.nmEmpresa;
+
+        String ruaLoja = "";
+
+        try {
+          final cepLoja = loja.nuCep.replaceAll(RegExp(r'\D'), '');
+          if (cepLoja.length == 8) {
+            final urlLoja = Uri.parse(
+              'https://viacep.com.br/ws/$cepLoja/json/',
+            );
+            final responseLoja = await http.get(urlLoja);
+
+            if (responseLoja.statusCode == 200) {
+              final dataLoja = json.decode(responseLoja.body);
+              if (dataLoja['erro'] == null && dataLoja['logradouro'] != null) {
+                ruaLoja = dataLoja['logradouro'].toString().trim();
+              }
+            }
+          }
+        } catch (e) {
+          print('Erro ao consultar CEP da loja: $e');
+        }
+
+        final numeroLoja = (loja.nuEndereco > 0) ? ', ${loja.nuEndereco}' : '';
+
+        final complementoLoja = (loja.dsComplemento.isNotEmpty)
+            ? ' - ${loja.dsComplemento}'
+            : '';
+
+        _enderecoLoja = "$ruaLoja$numeroLoja$complementoLoja";
+      } else {
+        _nomeLoja = "Loja não encontrada";
+        _enderecoLoja = "";
+      }
+    } catch (e) {
+      print("Erro no carregamento de dados: $e");
+    }
+
+    setState(() => isLoading = false);
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFFF2BA0)),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7FC),
       appBar: _buildAppBar("Tela de endereço"),
@@ -47,10 +159,8 @@ class _AddressPageState extends State<AddressPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Detalhe do endereço
                   _buildAddressSection(),
                   const SizedBox(height: 24),
-
                   Text(
                     "Opções de entrega",
                     style: GoogleFonts.inter(
@@ -60,8 +170,6 @@ class _AddressPageState extends State<AddressPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-
-                  // Opção de Entrega (Delivery)
                   _buildDeliveryOption(
                     index: 0,
                     title: "Padrão",
@@ -69,8 +177,6 @@ class _AddressPageState extends State<AddressPage> {
                     price: widget.taxaEntrega,
                   ),
                   const SizedBox(height: 12),
-
-                  // Opção de Retirada na loja
                   _buildDeliveryOption(
                     index: 1,
                     title: "Retirar na loja",
@@ -78,24 +184,19 @@ class _AddressPageState extends State<AddressPage> {
                     price: 0.00,
                     isFree: true,
                   ),
-
                   const SizedBox(height: 32),
                   const Divider(),
-
-                  // Resumo de valores (para consistência)
                   _buildValueSummary(),
                 ],
               ),
             ),
           ),
-          // Footer com botão continuar
           _buildFooterButton(context),
         ],
       ),
     );
   }
 
-  // Widget para a AppBar
   PreferredSizeWidget _buildAppBar(String title) {
     return AppBar(
       backgroundColor: Colors.transparent,
@@ -119,17 +220,15 @@ class _AddressPageState extends State<AddressPage> {
           const Icon(Icons.shopping_bag, color: Color(0xFFFF2BA0)),
         ],
       ),
-      actions: [
-        // Placeholder para manter o espaçamento consistente se necessário
-        const SizedBox(width: 50), 
-      ],
+      actions: const [SizedBox(width: 50)],
     );
   }
 
-  // Widget para a seção de endereço
   Widget _buildAddressSection() {
-    final endereco = _selectedDeliveryOption == 0 ? _enderecoEntrega : _enderecoLoja;
-    final titulo = _selectedDeliveryOption == 0 ? "Entregar no endereço" : "Retirar na loja: $_nomeLoja";
+    final endereco = _opcaoEntrega == 0 ? _enderecoEntrega : _enderecoLoja;
+    final titulo = _opcaoEntrega == 0
+        ? "Entregar no endereço"
+        : "Retirar na loja: $_nomeLoja";
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -154,9 +253,12 @@ class _AddressPageState extends State<AddressPage> {
               ),
               GestureDetector(
                 onTap: () {
-                  // TODO: Implementar lógica para trocar/selecionar endereço ou loja
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Funcionalidade de troca de endereço em desenvolvimento')),
+                    const SnackBar(
+                      content: Text(
+                        'Funcionalidade de troca de endereço em desenvolvimento',
+                      ),
+                    ),
                   );
                 },
                 child: Text(
@@ -173,17 +275,13 @@ class _AddressPageState extends State<AddressPage> {
           const SizedBox(height: 8),
           Text(
             endereco,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
     );
   }
 
-  // Widget para as opções de entrega
   Widget _buildDeliveryOption({
     required int index,
     required String title,
@@ -191,15 +289,11 @@ class _AddressPageState extends State<AddressPage> {
     required double price,
     bool isFree = false,
   }) {
-    final isSelected = _selectedDeliveryOption == index;
+    final isSelected = _opcaoEntrega == index;
     final priceText = isFree ? "Grátis" : _currencyFormat.format(price);
 
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedDeliveryOption = index;
-        });
-      },
+      onTap: () => setState(() => _opcaoEntrega = index),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -240,21 +334,17 @@ class _AddressPageState extends State<AddressPage> {
                   priceText,
                   style: GoogleFonts.inter(
                     fontSize: 14,
-                    color: isFree ? const Color(0xFF4CAF50) : Colors.black87,
                     fontWeight: isFree ? FontWeight.bold : FontWeight.normal,
+                    color: isFree ? const Color(0xFF4CAF50) : Colors.black87,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Radio<int>(
                   value: index,
-                  groupValue: _selectedDeliveryOption,
-                  onChanged: (int? value) {
-                    if (value != null) {
-                      setState(() {
-                        _selectedDeliveryOption = value;
-                      });
-                    }
-                  },
+                  // ignore: deprecated_member_use
+                  groupValue: _opcaoEntrega,
+                  // ignore: deprecated_member_use
+                  onChanged: (value) => setState(() => _opcaoEntrega = value!),
                   activeColor: const Color(0xFFFF2BA0),
                 ),
               ],
@@ -265,10 +355,9 @@ class _AddressPageState extends State<AddressPage> {
     );
   }
 
-  // Widget para o resumo de valores
   Widget _buildValueSummary() {
-    final totalAposEntrega = widget.subtotal + 
-      (_selectedDeliveryOption == 0 ? widget.taxaEntrega : 0.0);
+    final totalAposEntrega =
+        widget.subtotal + (_opcaoEntrega == 0 ? widget.taxaEntrega : 0.0);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,9 +374,9 @@ class _AddressPageState extends State<AddressPage> {
         _buildResumoLinha("Subtotal", widget.subtotal),
         const SizedBox(height: 8),
         _buildResumoLinha(
-          "Taxa de entrega", 
-          _selectedDeliveryOption == 0 ? widget.taxaEntrega : 0.0,
-          isFree: _selectedDeliveryOption == 1,
+          "Taxa de entrega",
+          _opcaoEntrega == 0 ? widget.taxaEntrega : 0.0,
+          isFree: _opcaoEntrega == 1,
         ),
         const SizedBox(height: 8),
         _buildResumoLinha("Total", totalAposEntrega, isBold: true),
@@ -295,9 +384,15 @@ class _AddressPageState extends State<AddressPage> {
     );
   }
 
-  // Linha do resumo de valores
-  Widget _buildResumoLinha(String label, double valor, {bool isBold = false, bool isFree = false}) {
-    final valorText = isFree && valor == 0.0 ? "Grátis" : _currencyFormat.format(valor);
+  Widget _buildResumoLinha(
+    String label,
+    double valor, {
+    bool isBold = false,
+    bool isFree = false,
+  }) {
+    final valorText = isFree && valor == 0.0
+        ? "Grátis"
+        : _currencyFormat.format(valor);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -315,18 +410,18 @@ class _AddressPageState extends State<AddressPage> {
           style: GoogleFonts.inter(
             fontSize: isBold ? 16 : 14,
             fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            color: isFree && valor == 0.0 ? const Color(0xFF4CAF50) : Colors.black87,
+            color: isFree && valor == 0.0
+                ? const Color(0xFF4CAF50)
+                : Colors.black87,
           ),
         ),
       ],
     );
   }
 
-  // Footer com o botão principal
   Widget _buildFooterButton(BuildContext context) {
-    final totalAposEntrega = widget.subtotal + 
-      (_selectedDeliveryOption == 0 ? widget.taxaEntrega : 0.0);
-    final valorText = _currencyFormat.format(totalAposEntrega);
+    final totalAposEntrega =
+        widget.subtotal + (_opcaoEntrega == 0 ? widget.taxaEntrega : 0.0);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -334,7 +429,7 @@ class _AddressPageState extends State<AddressPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
@@ -344,16 +439,17 @@ class _AddressPageState extends State<AddressPage> {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () {
-            // Navegar para a tela de Pagamento/Revisão
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => CheckoutPage(
                   itens: widget.itens,
                   subtotal: widget.subtotal,
-                  taxaEntrega: _selectedDeliveryOption == 0 ? widget.taxaEntrega : 0.0,
+                  taxaEntrega: _opcaoEntrega == 0 ? widget.taxaEntrega : 0.0,
                   total: totalAposEntrega,
-                  tipoEntrega: _selectedDeliveryOption == 0 ? 'Entrega Padrão' : 'Retirada na Loja',
+                  tipoEntrega: _opcaoEntrega == 0
+                      ? 'Entrega Padrão'
+                      : 'Retirada na Loja',
                 ),
               ),
             );

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 import 'dart:ui_web' as ui_web;
 import '../models/produto.dart';
 import '../controllers/carrinho_controller.dart';
@@ -319,7 +319,7 @@ class _ProductPageState extends State<ProductPage> {
       ui_web.platformViewRegistry.registerViewFactory(
         viewId,
         (int viewId) {
-          final img = html.ImageElement()
+          final img = web.HTMLImageElement()
             ..src = src
             ..style.width = '100%'
             ..style.height = '100%'

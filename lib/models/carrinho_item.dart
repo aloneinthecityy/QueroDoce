@@ -1,9 +1,8 @@
-import 'produto.dart';
-
 class CarrinhoItem {
   final int idPessoa;
   final int idProduto;
-  final int nuQtd;
+  final int idEmpresa;
+  int nuQtd;
   final String? nmProduto;
   final String? dsProduto;
   final double? vlProduto;
@@ -14,6 +13,7 @@ class CarrinhoItem {
     required this.idPessoa,
     required this.idProduto,
     required this.nuQtd,
+    required this.idEmpresa,
     this.nmProduto,
     this.dsProduto,
     this.vlProduto,
@@ -30,6 +30,7 @@ class CarrinhoItem {
       dsProduto: json['ds_produto'],
       vlProduto: json['vl_produto'] != null ? double.parse(json['vl_produto'].toString()) : null,
       nmImagem: json['nm_imagem'],
+      idEmpresa: int.parse(json['id_empresa'].toString()), 
       nmEmpresa: json['nm_empresa'],
     );
   }
@@ -39,6 +40,7 @@ class CarrinhoItem {
       'id_pessoa': idPessoa,
       'id_produto': idProduto,
       'nu_qtd': nuQtd,
+      'id_empresa': idEmpresa,
     };
   }
 

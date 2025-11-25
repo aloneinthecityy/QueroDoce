@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 import 'dart:ui_web' as ui_web;
 import '../models/produto.dart';
 import '../controllers/produto_controller.dart';
@@ -259,7 +259,7 @@ class _SearchPageState extends State<SearchPage> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF2BA0).withOpacity(0.1),
+                              color: const Color(0xFFFF2BA0).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -299,7 +299,7 @@ class _SearchPageState extends State<SearchPage> {
       ui_web.platformViewRegistry.registerViewFactory(
         viewId,
         (int viewId) {
-          final img = html.ImageElement()
+          final img = web.HTMLImageElement()
             ..src = src
             ..style.width = '100%'
             ..style.height = '100%'
