@@ -1,6 +1,7 @@
+import 'package:app/pages/address_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 import 'dart:ui_web' as ui_web;
 import '../models/carrinho_item.dart';
 import '../controllers/carrinho_controller.dart';
@@ -41,38 +42,36 @@ class _CartPageState extends State<CartPage> {
   }
 
   Future<void> _alterarQuantidade(CarrinhoItem item, int novaQuantidade) async {
-    if (novaQuantidade <= 0) {
-      await _removerItem(item);
-      return;
-    }
-
     final usuario = AuthService.usuarioLogado;
     if (usuario == null) return;
 
-    final sucesso = await CarrinhoController.alterarQuantidade(
+    setState(() {
+      item.nuQtd = novaQuantidade;
+    });
+
+    await CarrinhoController.alterarQuantidade(
       usuario.idPessoa,
       item.idProduto,
       novaQuantidade,
     );
-
-    if (sucesso) {
-      _carregarItens();
-    }
   }
 
   Future<void> _removerItem(CarrinhoItem item) async {
     final usuario = AuthService.usuarioLogado;
     if (usuario == null) return;
 
-    setState(() => _removendo = true);
-    final sucesso = await CarrinhoController.removerItem(
-      usuario.idPessoa,
-      item.idProduto,
-    );
-    setState(() => _removendo = false);
+    if (item.nuQtd > 1) {
+      setState(() {
+        item.nuQtd -= 1;
+      });
 
-    if (sucesso) {
-      _carregarItens();
+      await CarrinhoController.removerItem(usuario.idPessoa, item.idProduto);
+    } else {
+      setState(() {
+        itens.removeWhere((i) => i.idProduto == item.idProduto);
+      });
+
+      await CarrinhoController.removerItem(usuario.idPessoa, item.idProduto);
     }
   }
 
@@ -116,8 +115,6 @@ class _CartPageState extends State<CartPage> {
 
   @override
   Widget build(BuildContext context) {
-    final usuario = AuthService.usuarioLogado;
-
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7FC),
       appBar: AppBar(
@@ -157,148 +154,154 @@ class _CartPageState extends State<CartPage> {
         ],
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF2BA0)))
+          ? const Center(
+              child: CircularProgressIndicator(color: Color(0xFFFF2BA0)),
+            )
           : itens.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.shopping_bag_outlined,
-                        size: 80,
-                        color: Colors.grey,
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 80,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Sua sacola está vazia',
+                    style: GoogleFonts.inter(fontSize: 18, color: Colors.grey),
+                  ),
+                ],
+              ),
+            )
+          : Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Informações da loja (agrupando por empresa)
+                        if (itens.isNotEmpty && itens.first.nmEmpresa != null)
+                          _buildStoreInfo(itens.first.nmEmpresa!),
+                        const SizedBox(height: 16),
+
+                        // Itens adicionados
+                        Text(
+                          "Itens adicionados",
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Lista de itens
+                        ...itens.map((item) => _buildItemCard(item)),
+
+                        const SizedBox(height: 16),
+                        const Divider(),
+
+                        // Resumo de valores
+                        Text(
+                          "Resumo de valores",
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        _buildResumoLinha("Subtotal", _subtotal),
+                        const SizedBox(height: 8),
+                        _buildResumoLinha("Taxa de entrega", _taxaEntrega),
+                        const SizedBox(height: 8),
+                        _buildResumoLinha("Total", _total, isBold: true),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Footer com botão continuar
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, -2),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Sua sacola está vazia',
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          color: Colors.grey,
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Valor total da compra",
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          Text(
+                            "R\$ ${_total.toStringAsFixed(2)} / ${itens.length} ${itens.length == 1 ? 'item' : 'itens'}",
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            // Navegar para a tela de checkout
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddressPage(
+                                  itens: itens, // sua lista de itens
+                                  subtotal: _subtotal,
+                                  taxaEntrega: _taxaEntrega,
+                                  total: _total,
+                                  idEmpresa: itens.first.idEmpresa,
+                                ),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF2BA0),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            "Continuar",
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                )
-              : Column(
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Informações da loja (agrupando por empresa)
-                            if (itens.isNotEmpty && itens.first.nmEmpresa != null)
-                              _buildStoreInfo(itens.first.nmEmpresa!),
-                            const SizedBox(height: 16),
-
-                            // Itens adicionados
-                            Text(
-                              "Itens adicionados",
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-
-                            // Lista de itens
-                            ...itens.map((item) => _buildItemCard(item)),
-
-                            const SizedBox(height: 16),
-                            const Divider(),
-
-                            // Resumo de valores
-                            Text(
-                              "Resumo de valores",
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-
-                            _buildResumoLinha("Subtotal", _subtotal),
-                            const SizedBox(height: 8),
-                            _buildResumoLinha("Taxa de entrega", _taxaEntrega),
-                            const SizedBox(height: 8),
-                            _buildResumoLinha("Total", _total, isBold: true),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // Footer com botão continuar
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, -2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Valor total da compra",
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                              Text(
-                                "R\$ ${_total.toStringAsFixed(2)} / ${itens.length} ${itens.length == 1 ? 'item' : 'itens'}",
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // TODO: Navegar para tela de checkout
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Funcionalidade de checkout em desenvolvimento'),
-                                  ),
-                                );
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF2BA0),
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                              ),
-                              child: Text(
-                                "Continuar",
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
+              ],
+            ),
     );
   }
 
@@ -403,9 +406,7 @@ class _CartPageState extends State<CartPage> {
           Row(
             children: [
               GestureDetector(
-                onTap: _removendo
-                    ? null
-                    : () => _removerItem(item),
+                onTap: _removendo ? null : () => _removerItem(item),
                 child: Container(
                   padding: const EdgeInsets.all(4),
                   child: const Icon(
@@ -472,7 +473,7 @@ class _CartPageState extends State<CartPage> {
   String _getImageUrl(String imagem) {
     // Remove espaços em branco
     imagem = imagem.trim();
-    
+
     // Se já for uma URL completa (http:// ou https://), usar diretamente
     if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
       return imagem;
@@ -484,26 +485,22 @@ class _CartPageState extends State<CartPage> {
   Widget _buildHtmlImage(String src) {
     // Cria um ID único para o elemento HTML
     final String viewId = 'img-cart-${src.hashCode}';
-    
+
     // Registra a plataforma view se ainda não foi registrada
     if (!_registeredViews.contains(viewId)) {
-      ui_web.platformViewRegistry.registerViewFactory(
-        viewId,
-        (int viewId) {
-          final img = html.ImageElement()
-            ..src = src
-            ..style.width = '100%'
-            ..style.height = '100%'
-            ..style.objectFit = 'cover'
-            ..style.objectPosition = 'center';
-          
-          return img;
-        },
-      );
+      ui_web.platformViewRegistry.registerViewFactory(viewId, (int viewId) {
+        final img = web.ImageElement()
+          ..src = src
+          ..style.width = '100%'
+          ..style.height = '100%'
+          ..style.objectFit = 'cover'
+          ..style.objectPosition = 'center';
+
+        return img;
+      });
       _registeredViews.add(viewId);
     }
 
     return HtmlElementView(viewType: viewId);
   }
 }
-

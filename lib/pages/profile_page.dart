@@ -29,7 +29,6 @@ class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _numeroController;
 
   bool _loading = false;
-  bool _mostrarSenha = false;
   bool _mostrarNovaSenha = false;
   bool _consultandoCep = false;
   bool _inicializado = false;
@@ -46,40 +45,44 @@ class _ProfilePageState extends State<ProfilePage> {
     _senhaController = TextEditingController();
     _novaSenhaController = TextEditingController();
     _cepController = TextEditingController(text: _usuario?.nuCep ?? '');
-    _complementoController = TextEditingController(text: _usuario?.dsComplemento ?? '');
-    _numeroController = TextEditingController(text: _usuario?.nuEndereco?.toString() ?? '');
-    
+    _complementoController = TextEditingController(
+      text: _usuario?.dsComplemento ?? '',
+    );
+    _numeroController = TextEditingController(
+      text: _usuario?.nuEndereco?.toString() ?? '',
+    );
+
     // Marca como inicializado após um pequeno delay
     Future.delayed(const Duration(milliseconds: 500), () {
       _inicializado = true;
     });
-    
+
     // Adiciona listener para consultar CEP quando mudar
     _cepController.addListener(_consultarCep);
   }
-  
+
   Future<void> _consultarCep() async {
     // Não consulta durante a inicialização
     if (!_inicializado) {
       return;
     }
-    
+
     final cep = _cepController.text.replaceAll(RegExp(r'\D'), '');
-    
+
     // Só consulta se tiver 8 dígitos
     if (cep.length != 8) {
       return;
     }
-    
+
     setState(() => _consultandoCep = true);
-    
+
     try {
       final url = Uri.parse('https://viacep.com.br/ws/$cep/json/');
       final response = await http.get(url);
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['erro'] == null) {
           // Preenche o campo de logradouro com os dados do CEP
           final logradouro = '${data['logradouro'] ?? ''}'.trim();
@@ -130,7 +133,7 @@ class _ProfilePageState extends State<ProfilePage> {
     try {
       // Remove hífen e caracteres não numéricos do CEP (banco espera apenas 8 dígitos)
       final cepLimpo = _cepController.text.replaceAll(RegExp(r'\D'), '');
-      
+
       final pessoaAtualizada = Pessoa(
         idPessoa: _usuario!.idPessoa,
         nmPessoa: _nomeController.text.trim(),
@@ -138,7 +141,9 @@ class _ProfilePageState extends State<ProfilePage> {
         nuCel: _celController.text.trim(),
         dsEmail: _emailController.text.trim(),
         nuCep: cepLimpo, // CEP sem hífen e apenas números
-        dsComplemento: _usuario?.dsComplemento ?? '', // Mantém o valor original do banco, não salva o campo de rua
+        dsComplemento:
+            _usuario?.dsComplemento ??
+            '', // Mantém o valor original do banco, não salva o campo de rua
         nuEndereco: int.tryParse(_numeroController.text.trim()) ?? 0,
       );
 
@@ -154,10 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (sucesso) {
         // Se mudou a senha, atualiza o AuthService fazendo login
         if (novaSenha != null) {
-          await AuthService.login(
-            pessoaAtualizada.dsEmail,
-            novaSenha,
-          );
+          await AuthService.login(pessoaAtualizada.dsEmail, novaSenha);
         } else {
           // Se não mudou senha, apenas atualiza os dados do usuário logado
           AuthService.usuarioLogado = pessoaAtualizada;
@@ -187,9 +189,9 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erro: $e')));
       }
     } finally {
       setState(() => _loading = false);
@@ -367,11 +369,15 @@ class _ProfilePageState extends State<ProfilePage> {
                       obscureText: !_mostrarNovaSenha,
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _mostrarNovaSenha ? Icons.visibility : Icons.visibility_off,
+                          _mostrarNovaSenha
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                           color: Colors.grey,
                         ),
                         onPressed: () {
-                          setState(() => _mostrarNovaSenha = !_mostrarNovaSenha);
+                          setState(
+                            () => _mostrarNovaSenha = !_mostrarNovaSenha,
+                          );
                         },
                       ),
                     ),
@@ -512,10 +518,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.inter(
-          fontSize: 12,
-          color: Colors.grey[600],
-        ),
+        labelStyle: GoogleFonts.inter(fontSize: 12, color: Colors.grey[600]),
         prefixIcon: Icon(icon, color: const Color(0xFFFF2BA0)),
         suffixIcon: suffixIcon,
         filled: true,
@@ -536,15 +539,21 @@ class _ProfilePageState extends State<ProfilePage> {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Color(0xFFFF2BA0), width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
       validator: (value) {
         if (value == null || value.isEmpty) {
           if (label == "Nova senha") return null; // Nova senha é opcional
-          if (label == "Rua/Logradouro") return null; // Rua/Logradouro é preenchido automaticamente pelo CEP
+          if (label == "Rua/Logradouro") {
+            return null; // Rua/Logradouro é preenchido automaticamente pelo CEP
+          }
           return 'Campo obrigatório';
         }
-        if (label == "E-mail" && (!value.contains('@') || !value.contains('.'))) {
+        if (label == "E-mail" &&
+            (!value.contains('@') || !value.contains('.'))) {
           return 'E-mail inválido';
         }
         return null;
@@ -552,4 +561,3 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
-

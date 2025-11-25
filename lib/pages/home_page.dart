@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:html' as html;
+import 'package:web/web.dart' as web;
 import 'dart:ui_web' as ui_web;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -41,18 +41,18 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _carregarDados() async {
     setState(() => isLoading = true);
-    
+
     final usuario = AuthService.usuarioLogado;
     if (usuario != null) {
       // Busca a rua/logradouro via CEP
       String? ruaLogradouro;
-      if (usuario.nuCep != null && usuario.nuCep.isNotEmpty) {
+      if (usuario.nuCep.isNotEmpty) {
         try {
           final cep = usuario.nuCep.replaceAll(RegExp(r'\D'), '');
           if (cep.length == 8) {
             final url = Uri.parse('https://viacep.com.br/ws/$cep/json/');
             final response = await http.get(url);
-            
+
             if (response.statusCode == 200) {
               final data = json.decode(response.body);
               if (data['erro'] == null && data['logradouro'] != null) {
@@ -64,16 +64,18 @@ class _HomePageState extends State<HomePage> {
           print('Erro ao consultar CEP: $e');
         }
       }
-      
+
       // Monta o endereço completo: rua/logradouro + número
       if (ruaLogradouro != null && ruaLogradouro.isNotEmpty) {
-        final numero = usuario.nuEndereco != null && usuario.nuEndereco! > 0 
-            ? ', ${usuario.nuEndereco}' 
+        final numero = usuario.nuEndereco != null && usuario.nuEndereco! > 0
+            ? ', ${usuario.nuEndereco}'
             : '';
         setState(() => endereco = '$ruaLogradouro$numero');
       } else {
         // Fallback para o endereço formatado original
-        final enderecoData = await PessoaController.buscarEndereco(usuario.idPessoa);
+        final enderecoData = await PessoaController.buscarEndereco(
+          usuario.idPessoa,
+        );
         setState(() => endereco = enderecoData ?? usuario.enderecoFormatado);
       }
     }
@@ -100,7 +102,9 @@ class _HomePageState extends State<HomePage> {
     if (idCategoria == null) {
       produtosFiltrados = await ProdutoController.listarProdutosRecentes();
     } else {
-      produtosFiltrados = await ProdutoController.listarProdutosPorCategoria(idCategoria);
+      produtosFiltrados = await ProdutoController.listarProdutosPorCategoria(
+        idCategoria,
+      );
     }
 
     setState(() {
@@ -122,18 +126,18 @@ class _HomePageState extends State<HomePage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                          Flexible(
-                            child: Text(
-                              endereco ?? 'Carregando...',
-                              style: GoogleFonts.pixelifySans(
-                                fontSize: 16,
-                                color: const Color(0xFFFF2BA0),
-                                fontWeight: FontWeight.w400,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
+                  Flexible(
+                    child: Text(
+                      endereco ?? 'Carregando...',
+                      style: GoogleFonts.pixelifySans(
+                        fontSize: 16,
+                        color: const Color(0xFFFF2BA0),
+                        fontWeight: FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                   const SizedBox(width: 8),
                   const Icon(
                     Icons.keyboard_arrow_down,
@@ -201,14 +205,18 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(width: 8),
                   // Badges das categorias
-                  ...categorias.map((categoria) => Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: _buildCategoriaBadge(
-                          label: categoria.nmCategoria,
-                          isSelected: categoriaSelecionada == categoria.idCategoria,
-                          onTap: () => _filtrarPorCategoria(categoria.idCategoria),
-                        ),
-                      )),
+                  ...categorias.map(
+                    (categoria) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _buildCategoriaBadge(
+                        label: categoria.nmCategoria,
+                        isSelected:
+                            categoriaSelecionada == categoria.idCategoria,
+                        onTap: () =>
+                            _filtrarPorCategoria(categoria.idCategoria),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -216,27 +224,32 @@ class _HomePageState extends State<HomePage> {
             // Lista de produtos
             Expanded(
               child: isLoading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF2BA0)))
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFFF2BA0),
+                      ),
+                    )
                   : produtos.isEmpty
-                      ? Center(
-                          child: Text(
-                            'Nenhum produto encontrado',
-                            style: GoogleFonts.inter(color: Colors.white70),
-                          ),
-                        )
-                      : GridView.builder(
-                          padding: const EdgeInsets.all(16),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  ? Center(
+                      child: Text(
+                        'Nenhum produto encontrado',
+                        style: GoogleFonts.inter(color: Colors.white70),
+                      ),
+                    )
+                  : GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 12,
                             mainAxisSpacing: 12,
                             childAspectRatio: 0.75,
                           ),
-                          itemCount: produtos.length,
-                          itemBuilder: (context, index) {
-                            return _buildProdutoCard(produtos[index]);
-                          },
-                        ),
+                      itemCount: produtos.length,
+                      itemBuilder: (context, index) {
+                        return _buildProdutoCard(produtos[index]);
+                      },
+                    ),
             ),
           ],
         ),
@@ -325,12 +338,18 @@ class _HomePageState extends State<HomePage> {
             Expanded(
               flex: 3,
               child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
                 child: produto.nmImagem.isNotEmpty
                     ? _buildHtmlImage(_getImageUrl(produto.nmImagem))
                     : Container(
                         color: Colors.grey[300],
-                        child: const Icon(Icons.image, size: 50, color: Colors.grey),
+                        child: const Icon(
+                          Icons.image,
+                          size: 50,
+                          color: Colors.grey,
+                        ),
                       ),
               ),
             ),
@@ -366,9 +385,14 @@ class _HomePageState extends State<HomePage> {
                         ),
                         if (produto.nmEmpresa != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFFFF2BA0).withOpacity(0.1),
+                              color: const Color(
+                                0xFFFF2BA0,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -393,7 +417,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, bool isSelected, VoidCallback onTap) {
+  Widget _buildNavItem(
+    IconData icon,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -420,7 +449,7 @@ class _HomePageState extends State<HomePage> {
   String _getImageUrl(String imagem) {
     // Remove espaços em branco
     imagem = imagem.trim();
-    
+
     // Se já for uma URL completa (http:// ou https://), usar diretamente
     if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
       return imagem;
@@ -432,26 +461,22 @@ class _HomePageState extends State<HomePage> {
   Widget _buildHtmlImage(String src) {
     // Cria um ID único para o elemento HTML
     final String viewId = 'img-${src.hashCode}';
-    
+
     // Registra a plataforma view se ainda não foi registrada
     if (!_registeredViews.contains(viewId)) {
-      ui_web.platformViewRegistry.registerViewFactory(
-        viewId,
-        (int viewId) {
-          final img = html.ImageElement()
-            ..src = src
-            ..style.width = '100%'
-            ..style.height = '100%'
-            ..style.objectFit = 'cover'
-            ..style.objectPosition = 'center';
-          
-          return img;
-        },
-      );
+      ui_web.platformViewRegistry.registerViewFactory(viewId, (int viewId) {
+        final img = web.HTMLImageElement()
+          ..src = src
+          ..style.width = '100%'
+          ..style.height = '100%'
+          ..style.objectFit = 'cover'
+          ..style.objectPosition = 'center';
+
+        return img;
+      });
       _registeredViews.add(viewId);
     }
 
     return HtmlElementView(viewType: viewId);
   }
 }
-
