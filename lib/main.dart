@@ -70,21 +70,14 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _loading = true);
 
     try {
-      final url = Uri.http(
-        '200.19.1.19',
-        '/usuario01/Controller/CrudUsuario.php',
-        {
-          'oper': 'Login',
-          'ds_email': email,
-          'ds_senha': senha,
-        },
+      final url = Uri.parse(
+        "http://200.19.1.19/usuario01/Controller/CrudUsuario.php",
       );
 
-      final response = await http.get(url);
-
-      print('DEBUG Login - URL: $url');
-      print('DEBUG Login - Status: ${response.statusCode}');
-      print('DEBUG Login - Body: ${response.body}');
+      final response = await http.post(
+        url,
+        body: {"oper": "Login", "ds_email": email, "ds_senha": senha},
+      );
 
       if (response.statusCode == 200) {
         final responseBody = response.body.trim();
@@ -212,6 +205,7 @@ class _LoginPageState extends State<LoginPage> {
 
                       const SizedBox(height: 23),
 
+                      // Campo para email 
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -287,7 +281,8 @@ class _LoginPageState extends State<LoginPage> {
                       ),
 
                       const SizedBox(height: 22),
-
+                      
+                      // Campo para senha
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
