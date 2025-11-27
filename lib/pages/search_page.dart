@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:web/web.dart' as web;
-import 'dart:ui_web' as ui_web;
 import '../models/produto.dart';
 import '../controllers/produto_controller.dart';
+import '../utils/html_image.dart' as html_image;
 import 'product_page.dart';
 
 class SearchPage extends StatefulWidget {
@@ -18,7 +17,6 @@ class _SearchPageState extends State<SearchPage> {
   List<Produto> produtos = [];
   bool isLoading = false;
   bool _hasSearched = false;
-  final Set<String> _registeredViews = {};
 
   @override
   void dispose() {
@@ -293,26 +291,10 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   Widget _buildHtmlImage(String src) {
-    final String viewId = 'img-search-${src.hashCode}';
-
-    if (!_registeredViews.contains(viewId)) {
-      ui_web.platformViewRegistry.registerViewFactory(
-        viewId,
-        (int viewId) {
-          final img = web.HTMLImageElement()
-            ..src = src
-            ..style.width = '100%'
-            ..style.height = '100%'
-            ..style.objectFit = 'cover'
-            ..style.objectPosition = 'center';
-
-          return img;
-        },
-      );
-      _registeredViews.add(viewId);
-    }
-
-    return HtmlElementView(viewType: viewId);
+    return html_image.buildHtmlImage(
+      src,
+      viewId: 'search-img-${src.hashCode}',
+    );
   }
 }
 
