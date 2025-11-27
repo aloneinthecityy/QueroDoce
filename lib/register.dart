@@ -28,23 +28,6 @@ final cepMask = MaskTextInputFormatter(
   filter: {"#": RegExp(r'[0-9]')},
 );
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Register',
-      theme: ThemeData(
-        fontFamily: 'Inter',
-        scaffoldBackgroundColor: const Color(0xFFFFF7FC),
-      ),
-      home: const RegisterPage(),
-    );
-  }
-}
-
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
