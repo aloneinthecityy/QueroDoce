@@ -1,5 +1,6 @@
 import 'package:app/main.dart';
 import 'package:flutter/material.dart';
+import '../utils/html_image.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

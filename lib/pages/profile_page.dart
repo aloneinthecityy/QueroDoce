@@ -8,6 +8,7 @@ import '../models/pessoa.dart';
 import '../controllers/pessoa_controller.dart';
 import '../services/auth_service.dart';
 import '../main.dart';
+import '../utils/html_image.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
