@@ -7,6 +7,7 @@ import 'package:app/pages/forgot_password_page.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'services/auth_service.dart';
+import 'pages/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Serif',
         scaffoldBackgroundColor: Color(0xFFFFF7FC),
       ),
-      home: const AuthWrapper(),
+      home: const SplashScreen(),
     );
   }
 }

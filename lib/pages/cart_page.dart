@@ -1,11 +1,10 @@
 import 'package:app/pages/address_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:web/web.dart' as web;
-import 'dart:ui_web' as ui_web;
 import '../models/carrinho_item.dart';
 import '../controllers/carrinho_controller.dart';
 import '../services/auth_service.dart';
+import '../utils/html_image.dart' as html_image;
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -489,7 +488,7 @@ class _CartPageState extends State<CartPage> {
     // Registra a plataforma view se ainda não foi registrada
     if (!_registeredViews.contains(viewId)) {
       ui_web.platformViewRegistry.registerViewFactory(viewId, (int viewId) {
-        final img = web.ImageElement()
+        final img = web.HTMLImageElement()
           ..src = src
           ..style.width = '100%'
           ..style.height = '100%'
