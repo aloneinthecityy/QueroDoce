@@ -1,4 +1,4 @@
-import 'package:app/home.dart';
+import 'package:app/pages/home_page.dart';
 import 'package:app/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +7,8 @@ import 'package:flutter/gestures.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'services/auth_service.dart';
+
 
 void main() {
   runApp(const MyApp());
@@ -25,23 +27,6 @@ final cepMask = MaskTextInputFormatter(
   mask: '#####-###',
   filter: {"#": RegExp(r'[0-9]')},
 );
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Register',
-      theme: ThemeData(
-        fontFamily: 'Inter',
-        scaffoldBackgroundColor: const Color(0xFFFFF7FC),
-      ),
-      home: const RegisterPage(),
-    );
-  }
-}
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -73,6 +58,7 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  // Envia dados p/ servidor
   Future<void> _tentarCadastro() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -87,22 +73,23 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _loading = true);
 
     try {
-      final url = Uri.http(
-        '200.19.1.19',
-        '/usuario01/Controller/CrudUsuario.php',
-        {
-          'oper': 'Inserir',
-          'nm_pessoa': nome,
-          'nu_cpf': cpf,
-          'nu_cel': celular,
-          'ds_email': email,
-          'ds_senha': senha,
-          'nu_cep': cep,
-          'nu_endereco': numeroEndereco,
-        },
+      final url = Uri.parse(
+        "http://200.19.1.19/usuario01/Controller/CrudUsuario.php",
       );
 
-      final response = await http.get(url);
+      final response = await http.post(
+        url,
+        body: {
+          "oper": "Inserir",
+          "nm_pessoa": nome,
+          "nu_cpf": cpf,
+          "nu_cel": celular,
+          "ds_email": email,
+          "ds_senha": senha,
+          "nu_cep": cep,
+          "nu_endereco": numeroEndereco,
+        },
+      );
 
       if (response.statusCode == 200) {
         final responseBody = response.body.trim();
@@ -113,10 +100,23 @@ class _RegisterPageState extends State<RegisterPage> {
         final data = json.decode(responseBody);
 
         if (data["Mensagem"] == "Usuario adicionado com sucesso") {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage()),
-          );
+          final loginSucesso = await AuthService.login(email, senha);
+
+          if (loginSucesso) {
+            if (context.mounted) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const HomePage()),
+              );
+            }
+          } else {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text("Erro ao fazer login")),
+              );
+            }
+          }
+
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(data["Mensagem"] ?? "Erro no cadastro")),
@@ -162,7 +162,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         offset: const Offset(0, 4),
                       ),
                     ],
@@ -224,6 +224,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 17),
 
+                      // Campo de CPF
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -306,6 +307,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 15),
 
+                      // Campo de nome
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -386,6 +388,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 15),
 
+                      // Campo de celular
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -468,6 +471,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 15),
 
+                      // Campo de email
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -549,6 +553,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 15),
 
+                      // Campo de CEP
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -631,6 +636,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 15),
 
+                      // Campo de número de endereço
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -715,6 +721,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
                       const SizedBox(height: 15),
 
+                      // Campo de senha
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(

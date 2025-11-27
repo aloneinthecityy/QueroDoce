@@ -6,6 +6,7 @@ class AuthService {
   static const String baseUrl = "http://200.19.1.19/usuario01/Controller/CrudUsuario.php";
   static Pessoa? _usuarioLogado;
 
+  // ignore: unnecessary_getters_setters
   static Pessoa? get usuarioLogado => _usuarioLogado;
   
   static set usuarioLogado(Pessoa? pessoa) {
