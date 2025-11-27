@@ -69,7 +69,7 @@ class _ProductPageState extends State<ProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
@@ -82,7 +82,7 @@ class _ProductPageState extends State<ProductPage> {
                     width: double.infinity,
                     height: 300,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: const Color(0xFF2C2C2C),
                       borderRadius: const BorderRadius.only(
                         bottomLeft: Radius.circular(24),
                         bottomRight: Radius.circular(24),
@@ -94,7 +94,9 @@ class _ProductPageState extends State<ProductPage> {
                               bottomLeft: Radius.circular(24),
                               bottomRight: Radius.circular(24),
                             ),
-                            child: _buildHtmlImage(_getImageUrl(widget.produto.nmImagem)),
+                            child: _buildHtmlImage(
+                              _getImageUrl(widget.produto.nmImagem),
+                            ),
                           )
                         : Container(
                             color: Colors.grey[300],
@@ -115,7 +117,7 @@ class _ProductPageState extends State<ProductPage> {
                         ),
                         child: const Icon(
                           Icons.arrow_back,
-                          color: Colors.white,
+                          color: Color(0xFF2C2C2C),
                           size: 20,
                         ),
                       ),
@@ -134,7 +136,7 @@ class _ProductPageState extends State<ProductPage> {
                       "Bolos e tortas",
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: Colors.grey[400],
+                        color: const Color.fromARGB(255, 77, 77, 77),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -145,7 +147,7 @@ class _ProductPageState extends State<ProductPage> {
                       style: GoogleFonts.inter(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: const Color.fromARGB(255, 0, 0, 0),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -155,7 +157,7 @@ class _ProductPageState extends State<ProductPage> {
                       widget.produto.dsProduto,
                       style: GoogleFonts.inter(
                         fontSize: 14,
-                        color: Colors.white70,
+                        color: Color(0xFF2C2C2C),
                         height: 1.5,
                       ),
                     ),
@@ -166,7 +168,7 @@ class _ProductPageState extends State<ProductPage> {
                       "Serve até 1 pessoa",
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        color: Colors.grey[400],
+                        color: const Color.fromARGB(255, 77, 77, 77),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -177,13 +179,13 @@ class _ProductPageState extends State<ProductPage> {
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                        color: const Color.fromARGB(255, 255, 118, 209),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Color.fromARGB(255, 255, 255, 255),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: const Color(0xFFFF2BA0),
@@ -212,31 +214,37 @@ class _ProductPageState extends State<ProductPage> {
                         // Controles de quantidade
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove, color: Color(0xFFFF2BA0)),
-                                onPressed: quantidade > 1
-                                    ? () => setState(() => quantidade--)
-                                    : null,
-                              ),
-                              Text(
-                                quantidade.toString(),
-                                style: GoogleFonts.inter(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add, color: Color(0xFFFF2BA0)),
-                                onPressed: () => setState(() => quantidade++),
-                              ),
-                            ],
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                            icon: const Icon(
+                              Icons.remove,
+                              color: Colors.grey,
+                            ),
+                            onPressed: quantidade > 1
+                              ? () => setState(() => quantidade--)
+                              : null,
+                            ),
+                            Text(
+                            quantidade.toString(),
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                            ),
+                            IconButton(
+                            icon: const Icon(
+                              Icons.add,
+                              color: Color(0xFFFF2BA0),
+                            ),
+                            onPressed: () => setState(() => quantidade++),
+                            ),
+                          ],
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -244,10 +252,12 @@ class _ProductPageState extends State<ProductPage> {
                         // Botão adicionar
                         Expanded(
                           child: ElevatedButton(
-                            onPressed: _adicionando ? null : _adicionarAoCarrinho,
+                            onPressed: _adicionando
+                                ? null
+                                : _adicionarAoCarrinho,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFFF2BA0),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -258,18 +268,19 @@ class _ProductPageState extends State<ProductPage> {
                                     width: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      color: Colors.white,
+                                      color: Color(0xFF2C2C2C),
                                     ),
                                   )
                                 : Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
                                         "Adicionar",
                                         style: GoogleFonts.inter(
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                          color: Color.fromARGB(255, 255, 255, 255),
                                         ),
                                       ),
                                       Text(
@@ -299,7 +310,7 @@ class _ProductPageState extends State<ProductPage> {
   String _getImageUrl(String imagem) {
     // Remove espaços em branco
     imagem = imagem.trim();
-    
+
     // Se já for uma URL completa (http:// ou https://), usar diretamente
     if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
       return imagem;
@@ -315,4 +326,3 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 }
-

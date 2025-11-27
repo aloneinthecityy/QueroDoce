@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2C2C2C),
+      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
       body: SafeArea(
         child: Column(
           children: [
@@ -122,27 +122,22 @@ class _HomePageState extends State<HomePage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Flexible(
-                    child: Text(
-                      endereco ?? 'Carregando...',
-                      style: GoogleFonts.pixelifySans(
-                        fontSize: 16,
-                        color: const Color(0xFFFF2BA0),
-                        fontWeight: FontWeight.w400,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Color(0xFFFF2BA0),
-                    size: 20,
-                  ),
-                ],
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                endereco ?? 'Carregando...',
+                style: GoogleFonts.pixelifySans(
+            fontSize: 16,
+            color: const Color(0xFFFF2BA0),
+            fontWeight: FontWeight.w400,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
               ),
             ),
 
@@ -150,51 +145,33 @@ class _HomePageState extends State<HomePage> {
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               height: 150,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF2BA0),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Stack(
-                children: [
-                  // Imagem do banner local
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Image.asset(
-                      'assets/images/banner.png',
-                      width: double.infinity,
-                      height: 150,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  // Texto do banner
-                  Positioned(
-                    right: 16,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      // child: Text(
-                      //   "Bateu a vontade?\nPede um docinho!",
-                      //   style: GoogleFonts.pixelifySans(
-                      //     fontSize: 18,
-                      //     color: Colors.white,
-                      //     fontWeight: FontWeight.w400,
-                      //   ),
-                      //   textAlign: TextAlign.right,
-                      // ),
-                    ),
-                  ),
-                ],
+              child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Image.asset(
+            'assets/images/banner.png',
+            width: double.infinity,
+            height: 150,
+            fit: BoxFit.contain,
+          ),
               ),
             ),
 
             // Categorias (badges)
             Container(
-              height: 50,
+              height: 35,
               margin: const EdgeInsets.only(bottom: 12),
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                children: [
+              child: Center(
+              child: SizedBox(
+                width: MediaQuery.of(context).size.width > 600 ? 600 : double.infinity,
+                child: Align(
+                alignment: MediaQuery.of(context).size.width > 600
+                  ? Alignment.center
+                  : Alignment.centerLeft,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
                   // Badge "Tudo"
                   _buildCategoriaBadge(
                     label: "Tudo",
@@ -205,49 +182,80 @@ class _HomePageState extends State<HomePage> {
                   // Badges das categorias
                   ...categorias.map(
                     (categoria) => Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: _buildCategoriaBadge(
-                        label: categoria.nmCategoria,
-                        isSelected:
-                            categoriaSelecionada == categoria.idCategoria,
-                        onTap: () =>
-                            _filtrarPorCategoria(categoria.idCategoria),
-                      ),
+                    padding: const EdgeInsets.only(right: 8),
+                    child: _buildCategoriaBadge(
+                      label: categoria.nmCategoria,
+                      isSelected: categoriaSelecionada == categoria.idCategoria,
+                      onTap: () => _filtrarPorCategoria(categoria.idCategoria),
+                    ),
                     ),
                   ),
-                ],
+                  ],
+                ),
+                ),
+              ),
               ),
             ),
 
             // Lista de produtos
             Expanded(
-              child: isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: Color(0xFFFF2BA0),
-                      ),
-                    )
-                  : produtos.isEmpty
+              child: LayoutBuilder(
+              builder: (context, constraints) {
+                // Limita largura máxima em desktop/tablet
+                double maxGridWidth = MediaQuery.of(context).size.width > 1200
+                  ? 1000
+                  : MediaQuery.of(context).size.width > 900
+                    ? 800
+                    : MediaQuery.of(context).size.width > 600
+                      ? 500
+                      : double.infinity;
+
+                int crossAxisCount = MediaQuery.of(context).size.width > 1200
+                  ? 5
+                  : MediaQuery.of(context).size.width > 900
+                    ? 4
+                    : MediaQuery.of(context).size.width > 600
+                      ? 3
+                      : 2;
+
+                double childAspectRatio = MediaQuery.of(context).size.width > 600
+                  ? 0.7
+                  : 0.75;
+
+            return Center(
+              child: Container(
+                width: maxGridWidth,
+                child: isLoading
+              ? const Center(
+                  child: CircularProgressIndicator(
+              color: Color(0xFFFF2BA0),
+                  ),
+                )
+              : produtos.isEmpty
                   ? Center(
-                      child: Text(
-                        'Nenhum produto encontrado',
-                        style: GoogleFonts.inter(color: Colors.white70),
-                      ),
-                    )
+                child: Text(
+                  'Nenhum produto encontrado',
+                  style: GoogleFonts.inter(color: Colors.white70),
+                ),
+              )
                   : GridView.builder(
-                      padding: const EdgeInsets.all(16),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.75,
-                          ),
-                      itemCount: produtos.length,
-                      itemBuilder: (context, index) {
-                        return _buildProdutoCard(produtos[index]);
-                      },
-                    ),
+                padding: const EdgeInsets.all(16),
+                gridDelegate:
+                    SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: childAspectRatio,
+                ),
+                itemCount: produtos.length,
+                itemBuilder: (context, index) {
+                  return _buildProdutoCard(produtos[index]);
+                },
+              ),
+              ),
+            );
+          },
+              ),
             ),
           ],
         ),
@@ -326,19 +334,21 @@ class _HomePageState extends State<HomePage> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: const Color.fromARGB(255, 255, 255, 255).withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Imagem do produto
-            Expanded(
-              flex: 3,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(12),
-                ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Stack(
+            children: [
+              // Imagem do produto
+              Positioned.fill(
                 child: produto.nmImagem.isNotEmpty
                     ? _buildHtmlImage(_getImageUrl(produto.nmImagem))
                     : Container(
@@ -350,66 +360,65 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
               ),
-            ),
-            // Informações do produto
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      produto.nmProduto,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              // Nome do produto (canto superior esquerdo)
+              Positioned(
+                top: 8,
+                left: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    produto.nmProduto,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
                     ),
-                    const Spacer(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'R\$${produto.vlProduto.toStringAsFixed(2)}',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFFFF2BA0),
-                          ),
-                        ),
-                        if (produto.nmEmpresa != null)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(
-                                0xFFFF2BA0,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              produto.nmEmpresa!,
-                              style: GoogleFonts.inter(
-                                fontSize: 8,
-                                color: const Color(0xFFFF2BA0),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-            ),
-          ],
+              // Preço e nome da loja (canto inferior direito)
+              Positioned(
+                bottom: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'R\$${produto.vlProduto.toStringAsFixed(2)}',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFFFF2BA0),
+                        ),
+                      ),
+                      if (produto.nmEmpresa != null)
+                        Text(
+                          produto.nmEmpresa!,
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
