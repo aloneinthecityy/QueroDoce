@@ -177,10 +177,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
             children: [
               Row(
                 children: [
-                  const Icon(
-                    Icons.payment,
-                    color: Color(0xFF00C853),
-                  ), // Ícone Pix de exemplo
+                  Image.asset(
+                    'assets/icons/logo-pix.png',
+                    width: 22,
+                    height: 22,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     _formaPagamento,
@@ -362,34 +363,29 @@ class _CheckoutPageState extends State<CheckoutPage> {
           ),
         ),
         const SizedBox(height: 12),
-        ...widget.itens
-            .map(
-              (item) => Padding(
-                padding: const EdgeInsets.only(bottom: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        "${item.nuQtd}x ${item.nmProduto ?? 'Produto'}",
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                        ),
-                      ),
+        ...widget.itens.map(
+          (item) => Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    "${item.nuQtd}x ${item.nmProduto ?? 'Produto'}",
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.grey[700],
                     ),
-                    Text(
-                      _currencyFormat.format(item.totalItem),
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            )
-            ,
+                Text(
+                  _currencyFormat.format(item.totalItem),
+                  style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -414,7 +410,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
         width: double.infinity,
         child: ElevatedButton(
           onPressed: () {
-            // TODO: Finalizar pedido e enviar para a API
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(

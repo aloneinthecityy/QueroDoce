@@ -52,13 +52,15 @@ class _ProfilePageState extends State<ProfilePage> {
       text: _usuario?.nuEndereco?.toString() ?? '',
     );
 
-    // Marca como inicializado após um pequeno delay
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _inicializado = true;
-    });
-
     // Adiciona listener para consultar CEP quando mudar
     _cepController.addListener(_consultarCep);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cep = _cepController.text.replaceAll(RegExp(r'\D'), '');
+      if (cep.length == 8) {
+        _consultarCep();
+      }
+    });
   }
 
   Future<void> _consultarCep() async {
