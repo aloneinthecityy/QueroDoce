@@ -56,6 +56,8 @@ class _ProfilePageState extends State<ProfilePage> {
     _cepController.addListener(_consultarCep);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _inicializado = true; // <-- ATIVA CONSULTA
+
       final cep = _cepController.text.replaceAll(RegExp(r'\D'), '');
       if (cep.length == 8) {
         _consultarCep();
