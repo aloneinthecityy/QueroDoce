@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:web/web.dart' as web;
-import 'dart:ui_web' as ui_web;
 import '../models/produto.dart';
 import '../controllers/carrinho_controller.dart';
 import '../services/auth_service.dart';
+import '../utils/html_image.dart' as html_image;
 
 class ProductPage extends StatefulWidget {
   final Produto produto;
@@ -19,7 +18,6 @@ class _ProductPageState extends State<ProductPage> {
   int quantidade = 1;
   final TextEditingController _observacaoController = TextEditingController();
   bool _adicionando = false;
-  final Set<String> _registeredViews = {};
 
   @override
   void dispose() {
@@ -311,28 +309,10 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Widget _buildHtmlImage(String src) {
-    // Cria um ID único para o elemento HTML
-    final String viewId = 'img-product-${src.hashCode}';
-    
-    // Registra a plataforma view se ainda não foi registrada
-    if (!_registeredViews.contains(viewId)) {
-      ui_web.platformViewRegistry.registerViewFactory(
-        viewId,
-        (int viewId) {
-          final img = web.HTMLImageElement()
-            ..src = src
-            ..style.width = '100%'
-            ..style.height = '100%'
-            ..style.objectFit = 'cover'
-            ..style.objectPosition = 'center';
-          
-          return img;
-        },
-      );
-      _registeredViews.add(viewId);
-    }
-
-    return HtmlElementView(viewType: viewId);
+    return html_image.buildHtmlImage(
+      src,
+      viewId: 'product-img-${src.hashCode}',
+    );
   }
 }
 

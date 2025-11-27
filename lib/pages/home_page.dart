@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:web/web.dart' as web;
-import 'dart:ui_web' as ui_web;
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/produto.dart';
@@ -12,6 +10,7 @@ import '../controllers/categoria_controller.dart';
 import '../controllers/banner_controller.dart';
 import '../controllers/pessoa_controller.dart';
 import '../services/auth_service.dart';
+import '../utils/html_image.dart' as html_image;
 import 'product_page.dart';
 import 'cart_page.dart';
 import 'search_page.dart';
@@ -31,7 +30,6 @@ class _HomePageState extends State<HomePage> {
   String? endereco;
   int? categoriaSelecionada;
   bool isLoading = true;
-  final Set<String> _registeredViews = {};
 
   @override
   void initState() {
@@ -459,24 +457,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHtmlImage(String src) {
-    // Cria um ID único para o elemento HTML
-    final String viewId = 'img-${src.hashCode}';
-
-    // Registra a plataforma view se ainda não foi registrada
-    if (!_registeredViews.contains(viewId)) {
-      ui_web.platformViewRegistry.registerViewFactory(viewId, (int viewId) {
-        final img = web.HTMLImageElement()
-          ..src = src
-          ..style.width = '100%'
-          ..style.height = '100%'
-          ..style.objectFit = 'cover'
-          ..style.objectPosition = 'center';
-
-        return img;
-      });
-      _registeredViews.add(viewId);
-    }
-
-    return HtmlElementView(viewType: viewId);
+    return html_image.buildHtmlImage(
+      src,
+      viewId: 'home-img-${src.hashCode}',
+    );
   }
 }
