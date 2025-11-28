@@ -1,9 +1,6 @@
-import 'dart:ui_web' as ui_web;
-
 import 'package:app/pages/address_page.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:web/web.dart' as web;
 import '../models/carrinho_item.dart';
 import '../controllers/carrinho_controller.dart';
 import '../services/auth_service.dart';
@@ -485,24 +482,6 @@ class _CartPageState extends State<CartPage> {
   }
 
   Widget _buildHtmlImage(String src) {
-    // Cria um ID único para o elemento HTML
-    final String viewId = 'img-cart-${src.hashCode}';
-
-    // Registra a plataforma view se ainda não foi registrada
-    if (!_registeredViews.contains(viewId)) {
-      ui_web.platformViewRegistry.registerViewFactory(viewId, (int viewId) {
-        final img = web.HTMLImageElement()
-          ..src = src
-          ..style.width = '100%'
-          ..style.height = '100%'
-          ..style.objectFit = 'cover'
-          ..style.objectPosition = 'center';
-
-        return img;
-      });
-      _registeredViews.add(viewId);
-    }
-
-    return HtmlElementView(viewType: viewId);
+    return html_image.buildHtmlImage(src);
   }
 }
