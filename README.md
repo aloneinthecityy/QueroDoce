@@ -1,11 +1,17 @@
-
 ## QueroDoce
 
-QueroDoce é um aplicativo para facilitar a compra de doces, conectando clientes a empresas de confeitaria. O projeto foi desenvolvido em Flutter, com suporte para Android, iOS, Web, Windows, Linux e macOS.
+QueroDoce é um aplicativo para facilitar a compra de doces, conectando clientes a empresas de confeitaria. O projeto foi desenvolvido em Flutter, com suporte para Android, iOS, Web, Windows, Linux e macOS. 
+
+*O desenvolvimento desse projeto ainda está em andamento!*
+
+<p align="center">
+	<img src="assets/docs/logo.png" alt="logotipo" width="200"/>
+</p>
 
 ---
 
 ## Índice
+
 1. [Visão Geral](#visao-geral)
 2. [Estrutura do Projeto](#estrutura-do-projeto)
 3. [Instalação e Execução](#instalacao-e-execucao)
@@ -20,7 +26,24 @@ QueroDoce é um aplicativo para facilitar a compra de doces, conectando clientes
 ---
 
 ## 1. Visão Geral
+
 O QueroDoce permite que usuários naveguem por produtos, adicionem itens ao carrinho, realizem cadastro/login, finalizem compras e acompanhem pedidos. Empresas podem cadastrar seus produtos e gerenciar vendas.
+
+## Screenshots
+
+Confira abaixo as principais telas do QueroDoce, apresentadas em uma galeria visual. Cada imagem ilustra uma funcionalidade essencial do aplicativo:
+
+<div align="center">
+
+|           ![Tela Inicial](assets/docs/start.jpeg)            |          ![Tela de Login](assets/docs/login.jpeg)          |            ![Tela Home](assets/docs/home.jpeg)            |
+| :----------------------------------------------------------: | :--------------------------------------------------------: | :-------------------------------------------------------: |
+| **Tela Inicial**<br>Apresenta a marca e opções de navegação. | **Tela de Login**<br>Permite login ou cadastro de usuário. | **Tela Home**<br>Exibe produtos em destaque e categorias. |
+
+|       ![Tela de Busca](assets/docs/search.jpeg)        |               ![Tela do Carrinho](assets/docs/cart.jpeg)                |            ![Tela de Perfil](assets/docs/profile.jpeg)            |
+| :----------------------------------------------------: | :---------------------------------------------------------------------: | :---------------------------------------------------------------: |
+| **Tela de Busca**<br>Pesquisa de produtos ou empresas. | **Tela do Carrinho**<br>Visualização dos itens e finalização da compra. | **Tela de Perfil**<br>Visualização e edição dos dados do usuário. |
+
+</div>
 
 ## 2. Estrutura do Projeto
 
@@ -41,10 +64,12 @@ test/                      # Testes automatizados
 ## 3. Instalação e Execução
 
 ### Pré-requisitos
+
 - Flutter instalado ([Guia oficial](https://docs.flutter.dev/get-started/install))
 - Dart SDK
 
 ### Instalação
+
 ```sh
 git clone https://github.com/aloneinthecityy/QueroDoce.git
 cd QueroDoce
@@ -52,11 +77,15 @@ flutter pub get
 ```
 
 ### Execução
+
 Para rodar no emulador ou dispositivo:
+
 ```sh
 flutter run
 ```
+
 Para rodar testes:
+
 ```sh
 flutter test
 ```
@@ -72,6 +101,7 @@ flutter test
 ## 5. Controllers
 
 Localizados em `lib/controllers/`, cada controller gerencia uma parte do app:
+
 - `banner_controller.dart`: Gerencia banners promocionais.
 - `carrinho_controller.dart`: Lida com itens do carrinho, adicionar/remover produtos.
 - `categoria_controller.dart`: Gerencia categorias de produtos.
@@ -82,6 +112,7 @@ Localizados em `lib/controllers/`, cada controller gerencia uma parte do app:
 ## 6. Models
 
 Localizados em `lib/models/`, representam entidades do sistema:
+
 - `banner.dart`: Estrutura de banners.
 - `carrinho_item.dart`: Item do carrinho.
 - `categoria.dart`: Categoria de produto.
@@ -92,6 +123,7 @@ Localizados em `lib/models/`, representam entidades do sistema:
 ## 7. Pages
 
 Localizadas em `lib/pages/`, cada arquivo representa uma tela:
+
 - `address_page.dart`: Cadastro/endereço do usuário.
 - `cart_page.dart`: Visualização do carrinho.
 - `checkout_page.dart`: Finalização da compra.
@@ -104,6 +136,7 @@ Localizadas em `lib/pages/`, cada arquivo representa uma tela:
 ## 8. Services
 
 Localizados em `lib/services/`:
+
 - `auth_service.dart`: Gerencia autenticação, login, logout e cadastro.
 
 ## 9. Widgets
@@ -140,18 +173,21 @@ flowchart TD
 ## Exemplos de Uso
 
 ### Cadastro de Usuário
+
 1. Usuário acessa `register.dart`.
 2. Preenche dados e envia.
 3. `pessoa_controller.dart` salva dados.
 4. Redireciona para `home_page.dart`.
 
 ### Adição ao Carrinho
+
 1. Usuário navega em `product_page.dart`.
 2. Seleciona produto e adiciona ao carrinho.
 3. `carrinho_controller.dart` atualiza lista de itens.
 4. Visualiza em `cart_page.dart`.
 
 ### Checkout
+
 1. Usuário acessa `cart_page.dart`.
 2. Clica em finalizar compra.
 3. `checkout_page.dart` processa pedido.
@@ -159,5 +195,12 @@ flowchart TD
 
 ---
 
+## Contribuição
+
+Sinta-se livre para abrir issues ou pull requests!
+
+---
+
 ## Licença
+
 Este projeto está sob a licença MIT.
