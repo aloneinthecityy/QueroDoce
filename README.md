@@ -12,16 +12,16 @@ QueroDoce é um aplicativo para facilitar a compra de doces, conectando clientes
 
 ## Índice
 
-1. [Visão Geral](#visao-geral)
-2. [Estrutura do Projeto](#estrutura-do-projeto)
-3. [Instalação e Execução](#instalacao-e-execucao)
-4. [Fluxo Principal](#fluxo-principal)
-5. [Controllers](#controllers)
-6. [Models](#models)
-7. [Pages](#pages)
-8. [Services](#services)
-9. [Widgets](#widgets)
-10. [Diagramas](#diagramas)
+1. [Visão Geral](#1-visão-geral)
+2. [Estrutura do Projeto](#2-estrutura-do-projeto)
+3. [Instalação e Execução](#3-instalação-e-execução)
+4. [Fluxo Principal](#4-fluxo-principal)
+5. [Controllers](#5-controllers)
+6. [Models](#6-models)
+7. [Pages](#7-pages)
+8. [Services](#8-services)
+9. [Widgets](#9-widgets)
+10. [Diagramas](#10-diagramas)
 
 ---
 
@@ -31,19 +31,31 @@ O QueroDoce permite que usuários naveguem por produtos, adicionem itens ao carr
 
 ## Screenshots
 
-Confira abaixo as principais telas do QueroDoce, apresentadas em uma galeria visual. Cada imagem ilustra uma funcionalidade essencial do aplicativo:
-
+Confira abaixo algumas telas principais do QueroDoce, destacando funcionalidades essenciais do aplicativo:
 <div align="center">
 
-|           ![Tela Inicial](assets/docs/start.jpeg)            |          ![Tela de Login](assets/docs/login.jpeg)          |            ![Tela Home](assets/docs/home.jpeg)            |
-| :----------------------------------------------------------: | :--------------------------------------------------------: | :-------------------------------------------------------: |
-| **Tela Inicial**<br>Apresenta a marca e opções de navegação. | **Tela de Login**<br>Permite login ou cadastro de usuário. | **Tela Home**<br>Exibe produtos em destaque e categorias. |
-
-|       ![Tela de Busca](assets/docs/search.jpeg)        |               ![Tela do Carrinho](assets/docs/cart.jpeg)                |            ![Tela de Perfil](assets/docs/profile.jpeg)            |
-| :----------------------------------------------------: | :---------------------------------------------------------------------: | :---------------------------------------------------------------: |
-| **Tela de Busca**<br>Pesquisa de produtos ou empresas. | **Tela do Carrinho**<br>Visualização dos itens e finalização da compra. | **Tela de Perfil**<br>Visualização e edição dos dados do usuário. |
+<table>
+	<tr>
+		<td><img src="assets/docs/start.jpeg" alt="Tela Inicial" width="250" style="margin: 10px;"/></td>
+		<td><img src="assets/docs/login.jpeg" alt="Tela de Login" width="250" style="margin: 10px;"/></td>
+		<td><img src="assets/docs/home.jpeg" alt="Tela Home" width="250" style="margin: 10px;"/></td>
+	</tr>
+	<tr>
+		<td><img src="assets/docs/search.jpeg" alt="Tela de Busca" width="250" style="margin: 10px;"/></td>
+		<td><img src="assets/docs/cart.jpeg" alt="Tela do Carrinho" width="250" style="margin: 10px;"/></td>
+		<td><img src="assets/docs/profile.jpeg" alt="Tela de Perfil" width="250" style="margin: 10px;"/></td>
+	</tr>
+</table>
 
 </div>
+
+- **Tela Inicial:** Splash screen com logo do app animado.
+- **Tela de Login:** Permite login ou cadastro de usuário.
+- **Tela Home:** Exibe produtos em destaque e categorias.
+- **Tela de Busca:** Pesquisa de produtos ou empresas.
+- **Tela do Carrinho:** Visualização dos itens e finalização da compra.
+- **Tela de Perfil:** Visualização e edição dos dados do usuário.
+
 
 ## 2. Estrutura do Projeto
 
@@ -195,12 +207,8 @@ flowchart TD
 
 ---
 
-## Contribuição
-
-Sinta-se livre para abrir issues ou pull requests!
-
----
-
 ## Licença
 
-Este projeto está sob a licença MIT.
+Todo o conteúdo deste projeto (código, artes, imagens, design e identidade visual) é proprietário.  
+Não é permitido copiar, reutilizar ou distribuir nada deste repositório sem autorização da autora.
+
