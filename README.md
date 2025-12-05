@@ -159,10 +159,5 @@ flowchart TD
 
 ---
 
-## Contribuição
-Sinta-se livre para abrir issues ou pull requests!
-
----
-
 ## Licença
 Este projeto está sob a licença MIT.
