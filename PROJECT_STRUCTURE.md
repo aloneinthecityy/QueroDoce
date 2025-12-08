@@ -175,7 +175,7 @@ Atualmente vazio; reservado para componentes reutilizáveis (cards, botões, etc
 
 ## Conexão entre Back-end e Front-end
 
-- Os controllers PHP expõem endpoints acessíveis via HTTP (e.g. `http://200.19.1.19/usuario01/Controller/CrudUsuario.php?oper=Login`).
+- Os controllers PHP acessam endpoins via HTTP (o backend está hospedado no servidor de aplicação da faculdade).
 - Os controllers Dart montam URLs apontando para esses scripts e interpretam o JSON retornado (chaves `Mensagem`, `NumMens`, `dados`, `registros`).
 - Models PHP garantem consistência e validação antes de tocar o banco; models Dart fornecem tipagem e conveniências de UI.
 
