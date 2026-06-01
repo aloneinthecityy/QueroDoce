@@ -4,7 +4,8 @@ import '../models/empresa.dart';
 
 class EmpresaController {
   static const String baseUrl =
-      "http://200.19.1.19/usuario01/Controller/CrudEmpresa.php";
+      "http://localhost:8000/Controller/CrudEmpresa.php";
+  static String? ultimoErroLogin;
 
   /// Lista todas as empresas
   static Future<List<Empresa>> listarEmpresas() async {
@@ -53,25 +54,48 @@ class EmpresaController {
 
   /// Login da empresa
   static Future<Empresa?> login(String email, String senha) async {
+    ultimoErroLogin = null;
+
     try {
       final url = Uri.parse("$baseUrl?oper=Login");
       final response = await http.post(
         url,
-        body: {'ds_email': email, 'ds_senha': senha},
+        body: {'oper': 'Login', 'ds_email': email, 'ds_senha': senha},
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['dados'] != null &&
-            data['dados'] is List &&
-            (data['dados'] as List).isNotEmpty) {
-          return Empresa.fromJson(data['dados'][0]);
-        } else if (data['dados'] != null && data['dados'] is Map) {
-          return Empresa.fromJson(data['dados']);
-        }
+      if (response.statusCode != 200) {
+        ultimoErroLogin = 'Erro no servidor: ${response.statusCode}';
+        return null;
       }
+
+      final responseBody = response.body.trim();
+      if (responseBody.isEmpty) {
+        ultimoErroLogin = 'Resposta vazia do servidor.';
+        return null;
+      }
+
+      final data = json.decode(responseBody);
+      final mensagem = _readMensagem(data);
+      final empresaData = _extractEmpresaData(data);
+
+      if (empresaData == null) {
+        ultimoErroLogin =
+            mensagem ?? 'Empresa nao encontrada ou senha invalida.';
+        return null;
+      }
+
+      return Empresa.fromJson(empresaData);
+    } on FormatException catch (e) {
+      ultimoErroLogin = 'Resposta invalida do servidor: $e';
       return null;
     } catch (e) {
+      final errorText = e.toString();
+      if (errorText.contains('Failed to fetch')) {
+        ultimoErroLogin =
+            'Nao foi possivel acessar o backend. Verifique se o servidor PHP esta rodando em http://localhost:8000 e se o CORS esta liberado.';
+      } else {
+        ultimoErroLogin = 'Erro no login: $e';
+      }
       print('Erro no login: $e');
       return null;
     }
@@ -159,5 +183,49 @@ class EmpresaController {
       print('Erro ao excluir empresa: $e');
       return false;
     }
+  }
+
+  static Map<String, dynamic>? _extractEmpresaData(dynamic data) {
+    if (data is List && data.isNotEmpty) {
+      return _asMap(data.first);
+    }
+
+    if (data is! Map) return null;
+
+    final mensagem = data['mensagem'] ?? data['Mensagem'] ?? data['MENSAGEM'];
+    if (mensagem == 0 || mensagem == '0') return null;
+
+    final dados = data['dados'] ?? data['Dados'] ?? data['DADOS'];
+
+    if (dados is List && dados.isNotEmpty) {
+      return _asMap(dados.first);
+    }
+
+    if (dados is Map) {
+      return _asMap(dados);
+    }
+
+    return _asMap(data);
+  }
+
+  static String? _readMensagem(dynamic data) {
+    if (data is! Map) return null;
+
+    final value =
+        data['mensagem'] ??
+        data['Mensagem'] ??
+        data['MENSAGEM'] ??
+        data['message'] ??
+        data['erro'] ??
+        data['Erro'];
+
+    if (value == null) return null;
+    if (value == 1 || value == '1') return null;
+    return value.toString();
+  }
+
+  static Map<String, dynamic>? _asMap(dynamic value) {
+    if (value is! Map) return null;
+    return Map<String, dynamic>.from(value);
   }
 }

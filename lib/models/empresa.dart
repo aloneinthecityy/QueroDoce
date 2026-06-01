@@ -23,20 +23,32 @@ class Empresa {
 
   factory Empresa.fromJson(Map<String, dynamic> json) {
     try {
+      final idEmpresa = _readInt(json, const [
+        'id_empresa',
+        'idEmpresa',
+        'empresa_id',
+        'id',
+        'ID_EMPRESA',
+        'ID',
+      ]);
+
+      if (idEmpresa <= 0) {
+        throw FormatException('ID da empresa invalido: $json');
+      }
+
       return Empresa(
-        idEmpresa: json['id_empresa'] != null
-            ? int.parse(json['id_empresa'].toString())
-            : 0,
-        nmEmpresa: json['nm_empresa']?.toString() ?? '',
-        dsEmail: json['ds_email']?.toString() ?? '',
-        nmImagem: json['nm_imagem']?.toString() ?? '',
-        dsSenha: json['ds_senha']?.toString() ?? '',
-        nuCnpj: json['nu_cnpj']?.toString() ?? '',
-        nuCep: json['nu_cep']?.toString() ?? '',
-        dsComplemento: json['ds_complemento']?.toString() ?? '',
-        nuEndereco: json['nu_endereco'] != null
-            ? int.parse(json['nu_endereco'].toString())
-            : 0,
+        idEmpresa: idEmpresa,
+        nmEmpresa: _readString(json, const ['nm_empresa', 'nmEmpresa', 'nome']),
+        dsEmail: _readString(json, const ['ds_email', 'email']),
+        nmImagem: _readString(json, const ['nm_imagem', 'nmImagem', 'imagem']),
+        dsSenha: _readString(json, const ['ds_senha', 'senha']),
+        nuCnpj: _readString(json, const ['nu_cnpj', 'cnpj']),
+        nuCep: _readString(json, const ['nu_cep', 'cep']),
+        dsComplemento: _readString(json, const [
+          'ds_complemento',
+          'complemento',
+        ]),
+        nuEndereco: _readInt(json, const ['nu_endereco', 'nuEndereco']),
       );
     } catch (e) {
       print('Erro ao criar Empresa do JSON: $e');
@@ -57,5 +69,29 @@ class Empresa {
       'ds_complemento': dsComplemento,
       'nu_endereco': nuEndereco,
     };
+  }
+
+  static String _readString(Map<String, dynamic> json, List<String> keys) {
+    for (final key in keys) {
+      final value = json[key];
+      if (value != null) return value.toString();
+    }
+
+    return '';
+  }
+
+  static int _readInt(Map<String, dynamic> json, List<String> keys) {
+    for (final key in keys) {
+      final value = json[key];
+      if (value == null) continue;
+
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+
+      final parsed = int.tryParse(value.toString().trim());
+      if (parsed != null) return parsed;
+    }
+
+    return 0;
   }
 }

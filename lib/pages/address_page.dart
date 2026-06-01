@@ -447,6 +447,11 @@ class _AddressPageState extends State<AddressPage> {
                   subtotal: widget.subtotal,
                   taxaEntrega: _opcaoEntrega == 0 ? widget.taxaEntrega : 0.0,
                   total: totalAposEntrega,
+                  idEmpresa: widget.idEmpresa,
+                  nomeEmpresa: _nomeLoja,
+                  enderecoEntrega: _opcaoEntrega == 0
+                      ? _enderecoEntrega
+                      : _enderecoLoja,
                   tipoEntrega: _opcaoEntrega == 0
                       ? 'Entrega Padrão'
                       : 'Retirada na Loja',
