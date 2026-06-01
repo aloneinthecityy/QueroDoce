@@ -74,7 +74,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     try {
       final url = Uri.parse(
-        "http://200.19.1.19/usuario01/Controller/CrudUsuario.php",
+        "http://localhost:8000/Controller/CrudUsuario.php",
       );
 
       final response = await http.post(
