@@ -30,6 +30,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  firebase_core: ^4.0.0
+  cloud_firestore: ^6.0.0
   google_fonts: ^6.1.0
   mask_text_input_formatter: ^2.4.0
   flutter_svg: ^2.0.7 # Adiciona o pacote flutter_svg

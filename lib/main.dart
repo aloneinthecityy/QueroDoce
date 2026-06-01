@@ -8,8 +8,15 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'services/auth_service.dart';
 import 'pages/splash_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'pages/role_login_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   runApp(const MyApp());
 }
 
@@ -72,7 +79,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final url = Uri.parse(
-        "http://200.19.1.19/usuario01/Controller/CrudUsuario.php",
+        "http://localhost:8000/Controller/CrudUsuario.php",
       );
 
       final response = await http.post(
@@ -80,52 +87,49 @@ class _LoginPageState extends State<LoginPage> {
         body: {"oper": "Login", "ds_email": email, "ds_senha": senha},
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         final responseBody = response.body.trim();
         if (responseBody.isEmpty) {
           throw Exception('Resposta vazia do servidor');
         }
-        
+
         final data = json.decode(responseBody);
 
         if (data["Mensagem"] == "Login permitido") {
           // Usar o AuthService para fazer login
           final loginSucesso = await AuthService.login(email, senha);
-          
+
+          if (!mounted) return;
+
           if (loginSucesso) {
-            if (context.mounted) {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
-              );
-            }
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
           } else {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Erro ao fazer login")),
-              );
-            }
-          }
-        } else {
-          if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(data["Mensagem"] ?? "Erro no login")),
+              const SnackBar(content: Text("Erro ao fazer login")),
             );
           }
-        }
-      } else {
-        if (context.mounted) {
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Erro no servidor: ${response.statusCode}")),
+            SnackBar(content: Text(data["Mensagem"] ?? "Erro no login")),
           );
         }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Erro no servidor: ${response.statusCode}")),
+        );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Erro de conexão: $e")));
     } finally {
-      setState(() => _loading = false);
+      if (mounted) setState(() => _loading = false);
     }
   }
 
@@ -206,7 +210,7 @@ class _LoginPageState extends State<LoginPage> {
 
                       const SizedBox(height: 23),
 
-                      // Campo para email 
+                      // Campo para email
                       Align(
                         alignment: Alignment.centerLeft,
                         child: SizedBox(
@@ -282,7 +286,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
 
                       const SizedBox(height: 22),
-                      
+
                       // Campo para senha
                       Align(
                         alignment: Alignment.centerLeft,
@@ -365,7 +369,8 @@ class _LoginPageState extends State<LoginPage> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const ForgotPasswordPage(),
+                                builder: (context) =>
+                                    const ForgotPasswordPage(),
                               ),
                             );
                           },
@@ -412,6 +417,49 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                         ),
                       ),
+                      const SizedBox(height: 18),
+                      Text(
+                        "Acessos profissionais",
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF6B7280),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildRoleAccessButton(
+                              icon: Icons.delivery_dining,
+                              label: 'Entregador',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RoleLoginPage(
+                                    role: LoginRole.entregador,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildRoleAccessButton(
+                              icon: Icons.storefront,
+                              label: 'Empresa',
+                              onTap: () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const RoleLoginPage(
+                                    role: LoginRole.empresa,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -419,6 +467,24 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildRoleAccessButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      icon: Icon(icon, size: 18),
+      label: FittedBox(child: Text(label)),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFFEE0084),
+        side: const BorderSide(color: Color(0xFFF8CFE5)),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
