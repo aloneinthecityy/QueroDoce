@@ -1,8 +1,11 @@
 import 'package:app/models/carrinho_item.dart';
+import 'package:app/pages/cliente_pedidos_page.dart';
+import 'package:app/services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import '../utils/html_image.dart';
+import '../controllers/carrinho_controller.dart';
 
 class CheckoutPage extends StatefulWidget {
   final List<CarrinhoItem> itens;
@@ -10,6 +13,9 @@ class CheckoutPage extends StatefulWidget {
   final double taxaEntrega;
   final double total;
   final String tipoEntrega;
+  final int idEmpresa;
+  final String nomeEmpresa;
+  final String enderecoEntrega;
 
   const CheckoutPage({
     super.key,
@@ -18,6 +24,9 @@ class CheckoutPage extends StatefulWidget {
     required this.taxaEntrega,
     required this.total,
     required this.tipoEntrega,
+    required this.idEmpresa,
+    required this.nomeEmpresa,
+    required this.enderecoEntrega,
   });
 
   @override
@@ -28,9 +37,83 @@ class _CheckoutPageState extends State<CheckoutPage> {
   // Forma de pagamento de exemplo
   final String _formaPagamento = "Pix";
   bool _incluirCpf = false;
+  bool _finalizando = false;
 
   // Formatador de moeda
   final _currencyFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+
+  Future<void> _finalizarPedido() async {
+    final usuario = AuthService.usuarioLogado;
+    if (usuario == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Faca login para finalizar o pedido.')),
+      );
+      return;
+    }
+
+    setState(() => _finalizando = true);
+
+    try {
+      final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc();
+
+      // Firestore criado:
+      // Colecao: pedidos
+      // Campos usados por cliente, empresa e entregador:
+      // idPedido, idCliente, nomeCliente, idEmpresa, nomeEmpresa,
+      // enderecoEntrega, valorPedido, subtotal, taxaEntrega, status,
+      // entregadorId, dataPedido, tipoEntrega, formaPagamento e itens.
+      await pedidoRef.set({
+        'idPedido': pedidoRef.id,
+        'idCliente': usuario.idPessoa,
+        'nomeCliente': usuario.nmPessoa,
+        'idEmpresa': widget.idEmpresa,
+        'nomeEmpresa': widget.nomeEmpresa,
+        'enderecoEntrega': widget.enderecoEntrega,
+        'valorPedido': widget.total,
+        'subtotal': widget.subtotal,
+        'taxaEntrega': widget.taxaEntrega,
+        'status': widget.tipoEntrega.toLowerCase().contains('retirada')
+            ? 'aceito'
+            : 'aguardando_entregador',
+        'entregadorId': null,
+        'dataPedido': FieldValue.serverTimestamp(),
+        'tipoEntrega': widget.tipoEntrega,
+        'formaPagamento': _formaPagamento,
+        'cpfNaNota': _incluirCpf,
+        'itens': widget.itens.map((item) {
+          return {
+            'idProduto': item.idProduto,
+            'nomeProduto': item.nmProduto ?? 'Produto',
+            'descricaoProduto': item.dsProduto ?? '',
+            'quantidade': item.nuQtd,
+            'valorUnitario': item.vlProduto ?? 0,
+            'valorTotal': item.totalItem,
+          };
+        }).toList(),
+      });
+
+      await CarrinhoController.limparCarrinho(usuario.idPessoa);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pedido finalizado com sucesso!')),
+      );
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => ClientePedidosPage()),
+        (route) => route.isFirst,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erro ao finalizar pedido: $e')));
+    } finally {
+      if (mounted) setState(() => _finalizando = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -401,7 +484,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
@@ -410,15 +493,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Pedido finalizado no valor de $valorText, forma de entrega: ${widget.tipoEntrega}.',
-                ),
-              ),
-            );
-          },
+          onPressed: _finalizando ? null : _finalizarPedido,
           style: ElevatedButton.styleFrom(
             backgroundColor: const Color(0xFFFF2BA0),
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -426,14 +501,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
               borderRadius: BorderRadius.circular(12),
             ),
           ),
-          child: Text(
-            "Revisar pedido $valorText",
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          child: _finalizando
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text(
+                  "Finalizar pedido $valorText",
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
         ),
       ),
     );
