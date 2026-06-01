@@ -15,6 +15,7 @@ import 'product_page.dart';
 import 'cart_page.dart';
 import 'search_page.dart';
 import 'profile_page.dart';
+import 'cliente_pedidos_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -122,22 +123,22 @@ class _HomePageState extends State<HomePage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Flexible(
-              child: Text(
-                endereco ?? 'Carregando...',
-                style: GoogleFonts.pixelifySans(
-            fontSize: 16,
-            color: const Color(0xFFFF2BA0),
-            fontWeight: FontWeight.w400,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(
+                    child: Text(
+                      endereco ?? 'Carregando...',
+                      style: GoogleFonts.pixelifySans(
+                        fontSize: 16,
+                        color: const Color(0xFFFF2BA0),
+                        fontWeight: FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                ],
               ),
             ),
 
@@ -146,13 +147,13 @@ class _HomePageState extends State<HomePage> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               height: 150,
               child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.asset(
-            'assets/images/banner.png',
-            width: double.infinity,
-            height: 150,
-            fit: BoxFit.contain,
-          ),
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  'assets/images/banner.png',
+                  width: double.infinity,
+                  height: 150,
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
 
@@ -161,100 +162,103 @@ class _HomePageState extends State<HomePage> {
               height: 35,
               margin: const EdgeInsets.only(bottom: 12),
               child: Center(
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width > 600 ? 600 : double.infinity,
-                child: Align(
-                alignment: MediaQuery.of(context).size.width > 600
-                  ? Alignment.center
-                  : Alignment.centerLeft,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                  // Badge "Tudo"
-                  _buildCategoriaBadge(
-                    label: "Tudo",
-                    isSelected: categoriaSelecionada == null,
-                    onTap: () => _filtrarPorCategoria(null),
-                  ),
-                  const SizedBox(width: 8),
-                  // Badges das categorias
-                  ...categorias.map(
-                    (categoria) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: _buildCategoriaBadge(
-                      label: categoria.nmCategoria,
-                      isSelected: categoriaSelecionada == categoria.idCategoria,
-                      onTap: () => _filtrarPorCategoria(categoria.idCategoria),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width > 600
+                      ? 600
+                      : double.infinity,
+                  child: Align(
+                    alignment: MediaQuery.of(context).size.width > 600
+                        ? Alignment.center
+                        : Alignment.centerLeft,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        // Badge "Tudo"
+                        _buildCategoriaBadge(
+                          label: "Tudo",
+                          isSelected: categoriaSelecionada == null,
+                          onTap: () => _filtrarPorCategoria(null),
+                        ),
+                        const SizedBox(width: 8),
+                        // Badges das categorias
+                        ...categorias.map(
+                          (categoria) => Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: _buildCategoriaBadge(
+                              label: categoria.nmCategoria,
+                              isSelected:
+                                  categoriaSelecionada == categoria.idCategoria,
+                              onTap: () =>
+                                  _filtrarPorCategoria(categoria.idCategoria),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    ),
                   ),
-                  ],
                 ),
-                ),
-              ),
               ),
             ),
 
             // Lista de produtos
             Expanded(
               child: LayoutBuilder(
-              builder: (context, constraints) {
-                // Limita largura máxima em desktop/tablet
-                double maxGridWidth = MediaQuery.of(context).size.width > 1200
-                  ? 1000
-                  : MediaQuery.of(context).size.width > 900
-                    ? 800
-                    : MediaQuery.of(context).size.width > 600
+                builder: (context, constraints) {
+                  // Limita largura máxima em desktop/tablet
+                  double maxGridWidth = MediaQuery.of(context).size.width > 1200
+                      ? 1000
+                      : MediaQuery.of(context).size.width > 900
+                      ? 800
+                      : MediaQuery.of(context).size.width > 600
                       ? 500
                       : double.infinity;
 
-                int crossAxisCount = MediaQuery.of(context).size.width > 1200
-                  ? 5
-                  : MediaQuery.of(context).size.width > 900
-                    ? 4
-                    : MediaQuery.of(context).size.width > 600
+                  int crossAxisCount = MediaQuery.of(context).size.width > 1200
+                      ? 5
+                      : MediaQuery.of(context).size.width > 900
+                      ? 4
+                      : MediaQuery.of(context).size.width > 600
                       ? 3
                       : 2;
 
-                double childAspectRatio = MediaQuery.of(context).size.width > 600
-                  ? 0.7
-                  : 0.75;
+                  double childAspectRatio =
+                      MediaQuery.of(context).size.width > 600 ? 0.7 : 0.75;
 
-            return Center(
-              child: Container(
-                width: maxGridWidth,
-                child: isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(
-              color: Color(0xFFFF2BA0),
-                  ),
-                )
-              : produtos.isEmpty
-                  ? Center(
-                child: Text(
-                  'Nenhum produto encontrado',
-                  style: GoogleFonts.inter(color: Colors.white70),
-                ),
-              )
-                  : GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate:
-                    SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: childAspectRatio,
-                ),
-                itemCount: produtos.length,
-                itemBuilder: (context, index) {
-                  return _buildProdutoCard(produtos[index]);
+                  return Center(
+                    child: Container(
+                      width: maxGridWidth,
+                      child: isLoading
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: Color(0xFFFF2BA0),
+                              ),
+                            )
+                          : produtos.isEmpty
+                          ? Center(
+                              child: Text(
+                                'Nenhum produto encontrado',
+                                style: GoogleFonts.inter(color: Colors.white70),
+                              ),
+                            )
+                          : GridView.builder(
+                              padding: const EdgeInsets.all(16),
+                              gridDelegate:
+                                  SliverGridDelegateWithFixedCrossAxisCount(
+                                    crossAxisCount: crossAxisCount,
+                                    crossAxisSpacing: 12,
+                                    mainAxisSpacing: 12,
+                                    childAspectRatio: childAspectRatio,
+                                  ),
+                              itemCount: produtos.length,
+                              itemBuilder: (context, index) {
+                                return _buildProdutoCard(produtos[index]);
+                              },
+                            ),
+                    ),
+                  );
                 },
-              ),
-              ),
-            );
-          },
               ),
             ),
           ],
@@ -283,6 +287,12 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const CartPage()),
+              );
+            }),
+            _buildNavItem(Icons.receipt_long, "Pedidos", false, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ClientePedidosPage()),
               );
             }),
             _buildNavItem(Icons.person, "Perfil", false, () {
@@ -365,7 +375,10 @@ class _HomePageState extends State<HomePage> {
                 top: 8,
                 left: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(8),
@@ -387,7 +400,10 @@ class _HomePageState extends State<HomePage> {
                 bottom: 8,
                 right: 8,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(8),
@@ -466,9 +482,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildHtmlImage(String src) {
-    return html_image.buildHtmlImage(
-      src,
-      viewId: 'home-img-${src.hashCode}',
-    );
+    return html_image.buildHtmlImage(src, viewId: 'home-img-${src.hashCode}');
   }
 }

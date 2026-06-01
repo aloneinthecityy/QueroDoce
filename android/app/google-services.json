@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "444565550302",
+    "project_id": "quero-doce-d5f27",
+    "storage_bucket": "quero-doce-d5f27.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:444565550302:android:c264ad11896674fecafe4f",
+        "android_client_info": {
+          "package_name": "com.example.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCu2Y-ZTjCa95TnWfLkTHBFPOKgNd3VLXY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
