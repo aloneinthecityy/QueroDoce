@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/produto.dart';
 import '../controllers/produto_controller.dart';
-import '../utils/html_image.dart' as html_image;
-import 'product_page.dart';
+import '../widgets/produto_card.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -167,7 +166,7 @@ class _SearchPageState extends State<SearchPage> {
                           ),
                           itemCount: produtos.length,
                           itemBuilder: (context, index) {
-                            return _buildProdutoCard(produtos[index]);
+                            return ProdutoCard(produto: produtos[index]);
                           },
                         ),
                       ),
@@ -203,121 +202,6 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildProdutoCard(Produto produto) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProductPage(produto: produto),
-          ),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Stack(
-            children: [
-              // Imagem do produto
-              Positioned.fill(
-                child: produto.nmImagem.isNotEmpty
-                    ? _buildHtmlImage(_getImageUrl(produto.nmImagem))
-                    : Container(
-                        color: Colors.grey[300],
-                        child: const Icon(
-                          Icons.image,
-                          size: 50,
-                          color: Colors.grey,
-                        ),
-                      ),
-              ),
-              // Nome do produto (canto superior esquerdo)
-              Positioned(
-                top: 8,
-                left: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    produto.nmProduto,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              // Preço e nome da loja (canto inferior direito)
-              Positioned(
-                bottom: 8,
-                right: 8,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'R\$${produto.vlProduto.toStringAsFixed(2)}',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFFFF2BA0),
-                        ),
-                      ),
-                      if (produto.nmEmpresa != null)
-                        Text(
-                          produto.nmEmpresa!,
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            color: Colors.black87,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
-  String _getImageUrl(String imagem) {
-    imagem = imagem.trim();
-    if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
-      return imagem;
-    }
-    return 'http://localhost/backend/$imagem';
-  }
-
-  Widget _buildHtmlImage(String src) {
-    return html_image.buildHtmlImage(
-      src,
-      viewId: 'search-img-${src.hashCode}',
-    );
-  }
 }
 
