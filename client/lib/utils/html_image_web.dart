@@ -21,7 +21,8 @@ Widget buildHtmlImage(
         ..style.width = '100%'
         ..style.height = '100%'
         ..style.objectFit = _mapFit(fit)
-        ..style.objectPosition = 'center';
+        ..style.objectPosition = 'center'
+        ..style.setProperty('pointer-events', 'none');
 
       return img;
     });
