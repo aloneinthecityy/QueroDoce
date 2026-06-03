@@ -1,28 +1,64 @@
-import 'package:app/main.dart';
-import 'package:app/models/empresa.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../models/empresa.dart';
+import '../main.dart';
+import 'empresa_produtos_tab.dart';
+import 'empresa_perfil_tab.dart';
 
-class EmpresaPage extends StatelessWidget {
-  EmpresaPage({super.key, required this.empresa});
-
+class EmpresaPage extends StatefulWidget {
   final Empresa empresa;
+
+  const EmpresaPage({super.key, required this.empresa});
+
+  @override
+  State<EmpresaPage> createState() => _EmpresaPageState();
+}
+
+class _EmpresaPageState extends State<EmpresaPage> {
+  late Empresa _empresa;
+  int _selectedIndex = 0;
   final _currencyFormat = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
 
+  @override
+  void initState() {
+    super.initState();
+    _empresa = widget.empresa;
+  }
+
   Stream<QuerySnapshot<Map<String, dynamic>>> get _pedidosStream {
-    // Firestore esperado:
-    // Colecao pedidos com idEmpresa, nomeEmpresa, nomeCliente, status,
-    // enderecoEntrega, valorPedido, itens e dataPedido.
     return FirebaseFirestore.instance
         .collection('pedidos')
-        .where('idEmpresa', isEqualTo: empresa.idEmpresa)
+        .where('idEmpresa', isEqualTo: _empresa.idEmpresa)
         .snapshots();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Escolhe o corpo da tela com base na aba selecionada
+    Widget bodyWidget;
+    switch (_selectedIndex) {
+      case 0:
+        bodyWidget = _buildPedidosTab();
+        break;
+      case 1:
+        bodyWidget = EmpresaProdutosTab(empresa: _empresa);
+        break;
+      case 2:
+        bodyWidget = EmpresaPerfilTab(
+          empresa: _empresa,
+          onProfileUpdated: (updatedEmpresa) {
+            setState(() {
+              _empresa = updatedEmpresa;
+            });
+          },
+        );
+        break;
+      default:
+        bodyWidget = _buildPedidosTab();
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFFFF7FC),
       appBar: AppBar(
@@ -35,7 +71,7 @@ class EmpresaPage extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                empresa.nmEmpresa,
+                _empresa.nmEmpresa,
                 overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.pixelifySans(
                   fontWeight: FontWeight.w400,
@@ -59,55 +95,117 @@ class EmpresaPage extends StatelessWidget {
           ),
         ],
       ),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _pedidosStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(color: Color(0xFFEE0084)),
-            );
-          }
+      body: bodyWidget,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFFF2BA0),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(Icons.receipt_long, "Pedidos", _selectedIndex == 0, () {
+                setState(() => _selectedIndex = 0);
+              }),
+              _buildNavItem(Icons.cookie_outlined, "Doces", _selectedIndex == 1, () {
+                setState(() => _selectedIndex = 1);
+              }),
+              _buildNavItem(Icons.person, "Perfil", _selectedIndex == 2, () {
+                setState(() => _selectedIndex = 2);
+              }),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-          if (snapshot.hasError) {
-            return _state(
-              icon: Icons.cloud_off_outlined,
-              title: 'Erro ao carregar pedidos',
-              message: 'Confira sua conexao e tente novamente.',
-            );
-          }
-
-          final pedidos = snapshot.data?.docs.toList() ?? [];
-          pedidos.sort((a, b) {
-            final aDate = a.data()['dataPedido'];
-            final bDate = b.data()['dataPedido'];
-            if (aDate is Timestamp && bDate is Timestamp) {
-              return bDate.compareTo(aDate);
-            }
-            return 0;
-          });
-
-          if (pedidos.isEmpty) {
-            return _state(
-              icon: Icons.receipt_long_outlined,
-              title: 'Nenhum pedido recebido',
-              message: 'Os pedidos finalizados pelos clientes aparecem aqui.',
-            );
-          }
-
-          return Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 760),
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: pedidos.length,
-                separatorBuilder: (context, index) =>
-                    const SizedBox(height: 12),
-                itemBuilder: (_, index) => _pedidoCard(pedidos[index].data()),
+  Widget _buildNavItem(
+    IconData icon,
+    String label,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.white70,
+              size: 24,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: GoogleFonts.pixelifySans(
+                fontSize: 12,
+                color: isSelected ? Colors.white : Colors.white70,
               ),
             ),
-          );
-        },
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildPedidosTab() {
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _pedidosStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(color: Color(0xFFEE0084)),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return _state(
+            icon: Icons.cloud_off_outlined,
+            title: 'Erro ao carregar pedidos',
+            message: 'Confira sua conexão e tente novamente.',
+          );
+        }
+
+        final pedidos = snapshot.data?.docs.toList() ?? [];
+        pedidos.sort((a, b) {
+          final aDate = a.data()['dataPedido'];
+          final bDate = b.data()['dataPedido'];
+          if (aDate is Timestamp && bDate is Timestamp) {
+            return bDate.compareTo(aDate);
+          }
+          return 0;
+        });
+
+        if (pedidos.isEmpty) {
+          return _state(
+            icon: Icons.receipt_long_outlined,
+            title: 'Nenhum pedido recebido',
+            message: 'Os pedidos finalizados pelos clientes aparecem aqui.',
+          );
+        }
+
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 760),
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16),
+              itemCount: pedidos.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 12),
+              itemBuilder: (_, index) => _pedidoCard(pedidos[index].data()),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -151,7 +249,7 @@ class EmpresaPage extends StatelessWidget {
           const SizedBox(height: 8),
           _info(
             Icons.payments_outlined,
-            valor is num ? _currencyFormat.format(valor) : 'Valor indisponivel',
+            valor is num ? _currencyFormat.format(valor) : 'Valor indisponível',
           ),
           const SizedBox(height: 12),
           Text(
@@ -204,7 +302,7 @@ class EmpresaPage extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            value.isEmpty ? 'Nao informado' : value,
+            value.isEmpty ? 'Não informado' : value,
             style: GoogleFonts.inter(fontSize: 13),
           ),
         ),

@@ -12,6 +12,7 @@ class Tb_Empresa extends Base
     private $nu_cep;
     private $ds_complemento;
     private $nu_endereco;
+    private $nm_imagem;
 
 
     // CREATE TABLE tb_empresa (id_empresa SERIAL,
@@ -60,6 +61,10 @@ class Tb_Empresa extends Base
     {
         $this->nu_endereco = $num_endereco;
     }
+    function SetNmImagem($imagem)
+    {
+        $this->nm_imagem = $imagem;
+    }
 
 
     public function verificaExistencia()
@@ -98,10 +103,10 @@ class Tb_Empresa extends Base
             $stmt = $this->conexao->prepare("
                 INSERT INTO tb_empresa (
                     nm_empresa, nu_cnpj, ds_email, ds_senha,
-                    nu_cep, ds_complemento, nu_endereco
+                    nu_cep, ds_complemento, nu_endereco, nm_imagem
                 ) VALUES (
                     :nm_empresa, :nu_cnpj, :ds_email, :ds_senha,
-                    :nu_cep, :ds_complemento, :nu_endereco
+                    :nu_cep, :ds_complemento, :nu_endereco, :nm_imagem
                 )
             ");
 
@@ -109,10 +114,10 @@ class Tb_Empresa extends Base
             $stmt->bindValue(':nu_cnpj', $this->nu_cnpj, PDO::PARAM_STR);
             $stmt->bindValue(':ds_email', $this->ds_email, PDO::PARAM_STR);
             $stmt->bindValue(':ds_senha', $this->ds_senha, PDO::PARAM_STR);
-            $stmt->bindValue(':ds_senha', $this->ds_senha, PDO::PARAM_STR);
             $stmt->bindValue(':nu_cep', $this->nu_cep, PDO::PARAM_STR);
             $stmt->bindValue(':ds_complemento', $this->ds_complemento, PDO::PARAM_STR);
             $stmt->bindValue(':nu_endereco', $this->nu_endereco, PDO::PARAM_INT);
+            $stmt->bindValue(':nm_imagem', $this->nm_imagem, PDO::PARAM_STR);
 
             $this->conexao->beginTransaction();
             $stmt->execute();
@@ -127,14 +132,14 @@ class Tb_Empresa extends Base
         try {
             $this->buscaempresa();
             $stmt = $this->conexao->prepare("UPDATE tb_empresa set 
-                                            nm_empresa = :nm_empresa
-                                            nu_cnpj = :nu_cnpj
-                                            nu_cel = :nu_cel,
+                                            nm_empresa = :nm_empresa,
+                                            nu_cnpj = :nu_cnpj,
                                             ds_email = :ds_email,
                                             ds_senha = :ds_senha,
                                             nu_cep = :nu_cep,
                                             ds_complemento = :ds_complemento,
-                                            nu_endereco = :nu_endereco
+                                            nu_endereco = :nu_endereco,
+                                            nm_imagem = :nm_imagem
                                             WHERE id_empresa = :id_empresa");
             $stmt->bindValue(':id_empresa', $this->id_empresa, PDO::PARAM_INT);
             $stmt->bindValue(':nm_empresa', $this->nm_empresa, PDO::PARAM_STR);
@@ -144,6 +149,7 @@ class Tb_Empresa extends Base
             $stmt->bindValue(':nu_cep', $this->nu_cep, PDO::PARAM_STR);
             $stmt->bindValue(':ds_complemento', $this->ds_complemento, PDO::PARAM_STR);
             $stmt->bindValue(':nu_endereco', $this->nu_endereco, PDO::PARAM_INT);
+            $stmt->bindValue(':nm_imagem', $this->nm_imagem, PDO::PARAM_STR);
 
             $this->conexao->beginTransaction();
             $stmt->execute();

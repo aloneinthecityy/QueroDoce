@@ -21,6 +21,7 @@ $s_ds_senha       = isset($_REQUEST['ds_senha']) ? $_REQUEST['ds_senha'] : "";
 $s_nu_cep         = isset($_REQUEST['nu_cep']) ? $_REQUEST['nu_cep'] : "";
 $s_ds_complemento = isset($_REQUEST['ds_complemento']) ? $_REQUEST['ds_complemento'] : "";
 $i_nu_endereco    = isset($_REQUEST['nu_endereco']) ? $_REQUEST['nu_endereco'] : 0;
+$s_nm_imagem       = isset($_REQUEST['nm_imagem']) ? $_REQUEST['nm_imagem'] : "";
 
 
 
@@ -43,6 +44,7 @@ try {
     $Tb_empresa->SetNuCep($s_nu_cep);
     $Tb_empresa->SetDsComplemento($s_ds_complemento);
     $Tb_empresa->SetNuEndereco($i_nu_endereco);
+    $Tb_empresa->SetNmImagem($s_nm_imagem);
 
 
     switch ($Oper) {
@@ -77,7 +79,7 @@ try {
     unset($banco);
 } catch (Exception $e) {
     if (isset($banco)) {
-        $banco->setMensagem(1, $e->getMessage());
+        $banco->setMensagem(0, $e->getMessage());
         echo $banco->getRetorno();
         unset($banco);
     } else {
