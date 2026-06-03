@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -14,6 +16,7 @@ class EntregadorPage extends StatefulWidget {
 
 class _EntregadorPageState extends State<EntregadorPage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  StreamSubscription<Position>? _positionSubscription;
   final NumberFormat _currencyFormat = NumberFormat.currency(
     locale: 'pt_BR',
     symbol: 'R\$',
@@ -67,6 +70,65 @@ class _EntregadorPageState extends State<EntregadorPage> {
     }
   }
 
+  Future<void> _iniciarRastreamento(String pedidoDocId) async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      _showSnackBar('Por favor, ative a localização no seu dispositivo.', isError: true);
+      return;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        _showSnackBar('Permissão de localização negada.', isError: true);
+        return;
+      }
+    }
+    
+    if (permission == LocationPermission.deniedForever) {
+      _showSnackBar('Permissão de localização permanentemente negada.', isError: true);
+      return;
+    }
+
+    await _pararRastreamento();
+
+    const LocationSettings locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10,
+    );
+
+    _positionSubscription = Geolocator.getPositionStream(locationSettings: locationSettings)
+        .listen((Position position) {
+      _atualizarLocalizacaoNoFirestore(pedidoDocId, position);
+    });
+  }
+
+  Future<void> _pararRastreamento() async {
+    await _positionSubscription?.cancel();
+    _positionSubscription = null;
+  }
+
+  Future<void> _atualizarLocalizacaoNoFirestore(String pedidoDocId, Position position) async {
+    try {
+      await _firestore.collection('pedidos').doc(pedidoDocId).update({
+        'localizacaoEntregador': {
+          'latitude': position.latitude,
+          'longitude': position.longitude,
+          'atualizadoEm': FieldValue.serverTimestamp(),
+        }
+      });
+    } catch (e) {
+      debugPrint('Erro ao atualizar localização: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    _positionSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _atualizarStatus(String pedidoDocId, String novoStatus) async {
     if (!_temEntregadorValido) {
       _showSnackBar(
@@ -83,6 +145,12 @@ class _EntregadorPageState extends State<EntregadorPage> {
         'id_entregador': widget.entregadorId,
         'entregador_id': widget.entregadorId,
       });
+
+      if (novoStatus == 'em_entrega') {
+        _iniciarRastreamento(pedidoDocId);
+      } else if (novoStatus == 'entregue') {
+        _pararRastreamento();
+      }
 
       if (!mounted) return;
       _showSnackBar('Status atualizado para ${_statusLabel(novoStatus)}.');

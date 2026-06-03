@@ -56,6 +56,9 @@ class _AddressPageState extends State<AddressPage> {
     try {
       if (usuario != null) {
         String? ruaLogradouro;
+        String? cidadeLogradouro;
+        String? ufLogradouro;
+        String? cepLogradouro;
 
         if (usuario.nuCep.isNotEmpty) {
           try {
@@ -70,6 +73,9 @@ class _AddressPageState extends State<AddressPage> {
 
                 if (data['erro'] == null && data['logradouro'] != null) {
                   ruaLogradouro = data['logradouro'].toString().trim();
+                  cidadeLogradouro = data['localidade']?.toString().trim();
+                  ufLogradouro = data['uf']?.toString().trim();
+                  cepLogradouro = data['cep']?.toString().trim();
                 }
               }
             }
@@ -84,13 +90,29 @@ class _AddressPageState extends State<AddressPage> {
               ? ', ${usuario.nuEndereco}'
               : '';
 
-          _enderecoEntrega = '$ruaLogradouro$numero';
+          String enderecoCompleto = '$ruaLogradouro$numero';
+          if (cidadeLogradouro != null && cidadeLogradouro.isNotEmpty) {
+            enderecoCompleto += ', $cidadeLogradouro';
+          }
+          if (ufLogradouro != null && ufLogradouro.isNotEmpty) {
+            enderecoCompleto += ' - $ufLogradouro';
+          }
+          if (cepLogradouro != null && cepLogradouro.isNotEmpty) {
+            enderecoCompleto += ', CEP $cepLogradouro';
+          }
+
+          _enderecoEntrega = enderecoCompleto;
         } else {
           final enderecoData = await PessoaController.buscarEndereco(
             usuario.idPessoa,
           );
 
           _enderecoEntrega = enderecoData ?? usuario.enderecoFormatado;
+          
+          // Se o endereço veio sem o CEP, anexa o CEP do usuário no fim para auxiliar a busca geográfica
+          if (usuario.nuCep.isNotEmpty && !_enderecoEntrega.contains(usuario.nuCep)) {
+            _enderecoEntrega += ', CEP ${usuario.nuCep}';
+          }
         }
       }
 

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/pessoa.dart';
 
 class AuthService {
-  static const String baseUrl = "http://200.19.1.19/usuario01/Controller/CrudUsuario.php";
+  static const String baseUrl = "http://localhost/backend/Controller/CrudUsuario.php";
   static Pessoa? _usuarioLogado;
 
   // ignore: unnecessary_getters_setters
@@ -15,14 +15,8 @@ class AuthService {
 
   static Future<bool> login(String email, String senha) async {
     try {
-      final url = Uri.http(
-        '200.19.1.19',
-        '/usuario01/Controller/CrudUsuario.php',
-        {
-          'oper': 'Login',
-          'ds_email': email,
-          'ds_senha': senha,
-        },
+      final url = Uri.parse(
+        '$baseUrl?oper=Login&ds_email=${Uri.encodeComponent(email)}&ds_senha=${Uri.encodeComponent(senha)}',
       );
       
       final response = await http.get(url);

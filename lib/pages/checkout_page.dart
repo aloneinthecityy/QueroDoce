@@ -54,15 +54,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
     setState(() => _finalizando = true);
 
     try {
+      debugPrint('DEBUG - Iniciando finalização do pedido no Firestore...');
       final pedidoRef = FirebaseFirestore.instance.collection('pedidos').doc();
+      debugPrint('DEBUG - Documento criado com ID: ${pedidoRef.id}');
 
-      // Firestore criado:
-      // Colecao: pedidos
-      // Campos usados por cliente, empresa e entregador:
-      // idPedido, idCliente, nomeCliente, idEmpresa, nomeEmpresa,
-      // enderecoEntrega, valorPedido, subtotal, taxaEntrega, status,
-      // entregadorId, dataPedido, tipoEntrega, formaPagamento e itens.
-      await pedidoRef.set({
+      final dadosPedido = {
         'idPedido': pedidoRef.id,
         'idCliente': usuario.idPessoa,
         'nomeCliente': usuario.nmPessoa,
@@ -90,9 +86,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
             'valorTotal': item.totalItem,
           };
         }).toList(),
-      });
+      };
 
+      debugPrint('DEBUG - Dados a serem gravados: $dadosPedido');
+      
+      await pedidoRef.set(dadosPedido);
+      debugPrint('DEBUG - Gravação no Firestore concluída com sucesso!');
+
+      debugPrint('DEBUG - Chamando limparCarrinho para id_pessoa: ${usuario.idPessoa}');
       await CarrinhoController.limparCarrinho(usuario.idPessoa);
+      debugPrint('DEBUG - limparCarrinho concluído!');
 
       if (!mounted) return;
 
@@ -105,12 +108,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
         MaterialPageRoute(builder: (_) => ClientePedidosPage()),
         (route) => route.isFirst,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('DEBUG - Ocorreu um erro no try/catch: $e');
+      debugPrint('DEBUG - StackTrace: $stackTrace');
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Erro ao finalizar pedido: $e')));
     } finally {
+      debugPrint('DEBUG - Executando o bloco finally...');
       if (mounted) setState(() => _finalizando = false);
     }
   }

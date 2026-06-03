@@ -4,7 +4,7 @@ import '../models/empresa.dart';
 
 class EmpresaController {
   static const String baseUrl =
-      "http://localhost:8000/Controller/CrudEmpresa.php";
+      "http://localhost/backend/Controller/CrudEmpresa.php";
   static String? ultimoErroLogin;
 
   /// Lista todas as empresas
@@ -92,7 +92,7 @@ class EmpresaController {
       final errorText = e.toString();
       if (errorText.contains('Failed to fetch')) {
         ultimoErroLogin =
-            'Nao foi possivel acessar o backend. Verifique se o servidor PHP esta rodando em http://localhost:8000 e se o CORS esta liberado.';
+            'Nao foi possivel acessar o backend. Verifique se o servidor PHP esta rodando em http://localhost/backend e se o CORS esta liberado.';
       } else {
         ultimoErroLogin = 'Erro no login: $e';
       }
