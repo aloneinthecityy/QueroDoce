@@ -83,6 +83,25 @@ class ProdutoController {
     }
   }
 
+  static Future<List<Produto>> listarProdutosPorEmpresa(int idEmpresa) async {
+    try {
+      final url = Uri.parse("$baseUrl?oper=ListarProdutosPorEmpresa&id_empresa=$idEmpresa");
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['dados'] != null && data['dados'] is List) {
+          return (data['dados'] as List)
+              .map((item) => Produto.fromJson(item))
+              .toList();
+        }
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   static Future<Produto?> buscarProduto(int idProduto) async {
     try {
       final url = Uri.parse("$baseUrl?oper=Consultar&id_produto=$idProduto");
