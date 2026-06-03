@@ -157,5 +157,73 @@ class ProdutoController {
       return [];
     }
   }
+
+  static Future<bool> inserirProduto(Produto produto) async {
+    try {
+      final url = Uri.parse("$baseUrl?oper=Inserir");
+      final response = await http.post(
+        url,
+        body: {
+          'id_empresa': produto.idEmpresa.toString(),
+          'nm_produto': produto.nmProduto,
+          'ds_produto': produto.dsProduto,
+          'nm_imagem': produto.nmImagem,
+          'vl_produto': produto.vlProduto.toString(),
+          'nu_qtd': produto.nuQtd.toString(),
+          'fl_disponivel': produto.flDisponivel ? 'true' : 'false',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['NumMens'] == 1 || data['mensagem'] == 1;
+      }
+      return false;
+    } catch (e) {
+      print('Erro ao inserir produto: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> alterarProduto(Produto produto) async {
+    try {
+      final url = Uri.parse("$baseUrl?oper=Alterar");
+      final response = await http.post(
+        url,
+        body: {
+          'id_produto': produto.idProduto.toString(),
+          'id_empresa': produto.idEmpresa.toString(),
+          'nm_produto': produto.nmProduto,
+          'ds_produto': produto.dsProduto,
+          'nm_imagem': produto.nmImagem,
+          'vl_produto': produto.vlProduto.toString(),
+          'nu_qtd': produto.nuQtd.toString(),
+          'fl_disponivel': produto.flDisponivel ? 'true' : 'false',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['NumMens'] == 1 || data['mensagem'] == 1;
+      }
+      return false;
+    } catch (e) {
+      print('Erro ao alterar produto: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> excluirProduto(int idProduto) async {
+    try {
+      final url = Uri.parse("$baseUrl?oper=Excluir&id_produto=$idProduto");
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['NumMens'] == 1 || data['mensagem'] == 1;
+      }
+      return false;
+    } catch (e) {
+      print('Erro ao excluir produto: $e');
+      return false;
+    }
+  }
 }
 

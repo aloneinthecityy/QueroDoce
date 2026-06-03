@@ -149,7 +149,7 @@ class EmpresaController {
   /// Alterar dados da empresa
   static Future<bool> alterarEmpresa(Empresa empresa) async {
     try {
-      final url = Uri.parse("$baseUrl?oper=AlterarDadosEmpresa");
+      final url = Uri.parse("$baseUrl?oper=Alterar");
       final response = await http.post(
         url,
         body: empresa.toJson().map(
@@ -159,7 +159,7 @@ class EmpresaController {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['mensagem'] == 1;
+        return data['NumMens'] == 1 || data['mensagem'] == 1;
       }
       return false;
     } catch (e) {
