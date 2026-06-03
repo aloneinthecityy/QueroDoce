@@ -47,3 +47,6 @@ client/android/app/release
 **/build/
 .dart_tool/
 .pub-cache/
+android/.gradle/
+android/local.properties
+.flutter-plugins-dependencies
