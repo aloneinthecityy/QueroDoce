@@ -5,7 +5,7 @@ QueroDoce é um aplicativo para facilitar a compra de doces, conectando clientes
 *O desenvolvimento desse projeto ainda está em andamento!*
 
 <p align="center">
-	<img src="assets/docs/logo.png" alt="logotipo" width="200"/>
+	<img src="client/assets/docs/logo.png" alt="logotipo" width="200"/>
 </p>
 
 ---
@@ -36,14 +36,14 @@ Confira abaixo algumas telas principais do QueroDoce, destacando funcionalidades
 
 <table>
 	<tr>
-		<td><img src="assets/docs/start.jpeg" alt="Tela Inicial" width="250" style="margin: 10px;"/></td>
-		<td><img src="assets/docs/login.jpeg" alt="Tela de Login" width="250" style="margin: 10px;"/></td>
-		<td><img src="assets/docs/home.jpeg" alt="Tela Home" width="250" style="margin: 10px;"/></td>
+		<td><img src="client/assets/docs/start.jpeg" alt="Tela Inicial" width="250" style="margin: 10px;"/></td>
+		<td><img src="client/assets/docs/login.jpeg" alt="Tela de Login" width="250" style="margin: 10px;"/></td>
+		<td><img src="client/assets/docs/home.jpeg" alt="Tela Home" width="250" style="margin: 10px;"/></td>
 	</tr>
 	<tr>
-		<td><img src="assets/docs/search.jpeg" alt="Tela de Busca" width="250" style="margin: 10px;"/></td>
-		<td><img src="assets/docs/cart.jpeg" alt="Tela do Carrinho" width="250" style="margin: 10px;"/></td>
-		<td><img src="assets/docs/profile.jpeg" alt="Tela de Perfil" width="250" style="margin: 10px;"/></td>
+		<td><img src="client/assets/docs/search.jpeg" alt="Tela de Busca" width="250" style="margin: 10px;"/></td>
+		<td><img src="client/assets/docs/cart.jpeg" alt="Tela do Carrinho" width="250" style="margin: 10px;"/></td>
+		<td><img src="client/assets/docs/profile.jpeg" alt="Tela de Perfil" width="250" style="margin: 10px;"/></td>
 	</tr>
 </table>
 
