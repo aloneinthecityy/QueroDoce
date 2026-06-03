@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'controllers/entregador_controller.dart';
 
 class EntregadorPage extends StatefulWidget {
   const EntregadorPage({super.key, required this.entregadorId});
@@ -61,6 +62,12 @@ class _EntregadorPageState extends State<EntregadorPage> {
         'id_entregador': widget.entregadorId,
         'entregador_id': widget.entregadorId,
       });
+
+      await EntregadorController.notificarCliente(
+        pedidoDocId: pedidoDocId,
+        novoStatus: 'aceito',
+        firestore: _firestore,
+      );
 
       if (!mounted) return;
       _showSnackBar('Entrega aceita com sucesso!');
@@ -145,6 +152,12 @@ class _EntregadorPageState extends State<EntregadorPage> {
         'id_entregador': widget.entregadorId,
         'entregador_id': widget.entregadorId,
       });
+
+      await EntregadorController.notificarCliente(
+        pedidoDocId: pedidoDocId,
+        novoStatus: novoStatus,
+        firestore: _firestore,
+      );
 
       if (novoStatus == 'em_entrega') {
         _iniciarRastreamento(pedidoDocId);
@@ -319,7 +332,7 @@ class _EntregadorPageState extends State<EntregadorPage> {
           if (entregas.isEmpty) {
             return _buildStateMessage(
               icon: Icons.assignment_turned_in_outlined,
-              title: 'Voce ainda nao tem entregas',
+              title: 'Você ainda não tem entregas',
               message: 'Aceite um pedido para acompanhar o andamento aqui.',
             );
           }

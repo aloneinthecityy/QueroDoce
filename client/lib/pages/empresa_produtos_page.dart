@@ -319,7 +319,7 @@ class _EmpresaProdutosPageState extends State<EmpresaProdutosPage> {
     if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
       src = imagem;
     } else {
-      src = 'http://localhost/backend/$imagem';
+      src = 'localhost/backend/imagens/$imagem';
     }
     // Para logo, usamos BoxFit.cover
     return html_image.buildHtmlImage(

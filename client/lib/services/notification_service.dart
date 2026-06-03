@@ -1,52 +1,46 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Fora de qualquer classe, obrigatório pro background funcionar
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  await NotificationService.showLocalNotification(message);
+  await NotificationService.showOrUpdatePedidoNotification(message);
 }
 
 class NotificationService {
   static final _messaging = FirebaseMessaging.instance;
   static final _localNotifications = FlutterLocalNotificationsPlugin();
+  static const int _pedidoNotificationId = 42;
 
   static Future<void> initialize() async {
-    // 1. Registra o handler de background
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-    // 2. Pede permissão ao usuário
     await _messaging.requestPermission(alert: true, badge: true, sound: true);
 
-    // 3. Cria canal de alta prioridade no Android (heads-up notification)
-    await _createAndroidChannel();
+    await _createChannels();
 
-    // 4. Configura notificações locais
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     await _localNotifications.initialize(
       const InitializationSettings(android: androidSettings),
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
-    // 5. Listeners
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationOpened);
   }
 
-  static Future<void> _createAndroidChannel() async {
-    const channel = AndroidNotificationChannel(
+  static Future<void> _createChannels() async {
+    final plugin = _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+    await plugin?.createNotificationChannel(const AndroidNotificationChannel(
       'orders_channel',
       'Pedidos',
       description: 'Atualizações do seu pedido',
       importance: Importance.max,
-    );
-    await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(channel);
+    ));
   }
 
   static Future<void> saveTokenForUser(int idPessoa) async {
@@ -66,14 +60,17 @@ class NotificationService {
     });
   }
 
-  static Future<void> showLocalNotification(RemoteMessage message) async {
-    final notification = message.notification;
-    if (notification == null) return;
+  static Future<void> showOrUpdatePedidoNotification(RemoteMessage message) async {
+    final titulo = message.notification?.title;
+    final corpo = message.notification?.body;
+    final pedidoId = message.data['pedidoId'];
+
+    if (titulo == null || corpo == null) return;
 
     await _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
+      _pedidoNotificationId,
+      titulo,
+      corpo,
       const NotificationDetails(
         android: AndroidNotificationDetails(
           'orders_channel',
@@ -82,27 +79,25 @@ class NotificationService {
           priority: Priority.high,
         ),
       ),
-      payload: message.data['orderId'],
+      payload: pedidoId,
     );
   }
 
   static void _onForegroundMessage(RemoteMessage message) {
-    // FCM não exibe automaticamente quando o app está aberto
-    showLocalNotification(message);
+    showOrUpdatePedidoNotification(message);
   }
 
   static void _onNotificationOpened(RemoteMessage message) {
-    final orderId = message.data['orderId'];
-    if (orderId != null) {
-      // Navega para a tela do pedido — adapta pro seu sistema de rotas
-      // GoRouter.of(context).go('/order/$orderId');
+    final pedidoId = message.data['pedidoId'];
+    if (pedidoId != null) {
+      // navega para a tela do pedido
     }
   }
 
   static void _onNotificationTap(NotificationResponse response) {
-    final orderId = response.payload;
-    if (orderId != null) {
-      // Mesma coisa aqui — navega pro pedido
+    final pedidoId = response.payload;
+    if (pedidoId != null) {
+      // navega para a tela do pedido
     }
   }
 }

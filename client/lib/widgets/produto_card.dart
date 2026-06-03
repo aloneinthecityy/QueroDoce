@@ -27,7 +27,7 @@ class _ProdutoCardState extends State<ProdutoCard> {
     if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
       return imagem;
     }
-    return 'http://localhost/backend/$imagem';
+    return 'localhost/backend/imagens/$imagem';
   }
 
   Widget _buildHtmlImage(String src) {
