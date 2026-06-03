@@ -478,7 +478,7 @@ class _CartPageState extends State<CartPage> {
       return imagem;
     }
     // Caso contrário, concatenar com o caminho base
-    return 'localhost/backend/imagens/$imagem';
+    return 'http://localhost/backend/$imagem';
   }
 
   Widget _buildHtmlImage(String src) {
