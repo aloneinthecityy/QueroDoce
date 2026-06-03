@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/pessoa.dart';
+import 'notification_service.dart';
 
 class AuthService {
   static const String baseUrl = "http://localhost/backend/Controller/CrudUsuario.php";
@@ -41,6 +42,12 @@ class AuthService {
           } else if (data['dados'] is Map) {
             _usuarioLogado = Pessoa.fromJson(data['dados']);
           }
+
+          // Salva o token FCM vinculado ao usuário
+          if (_usuarioLogado != null) {
+            await NotificationService.saveTokenForUser(_usuarioLogado!.idPessoa);
+          }
+
           return true;
         }
       }

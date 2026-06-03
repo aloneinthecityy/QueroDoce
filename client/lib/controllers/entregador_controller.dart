@@ -1,19 +1,31 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
-
 import '../models/entregador.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class EntregadorController {
-  static const String baseUrl =
-      "http://localhost/backend/Controller/CrudEntregador.php";
+  static const String baseUrl = "http://localhost/backend/Controller/CrudEntregador.php";
 
-  /// Login do entregador usando o backend/PostgreSQL.
-  ///
-  /// Endpoint esperado:
-  /// CrudEntregador.php?oper=Login
-  /// Body: ds_email, ds_senha
-  /// Retorno: dados como Map ou List com id_entregador, nm_entregador etc.
+  static const Map<String, Map<String, String>> _mensagens = {
+    'aceito': {
+      'titulo': 'Pedido confirmado! 🎉',
+      'mensagem': 'Um entregador aceitou seu pedido e está indo para a loja!',
+    },
+    'coletando': {
+      'titulo': 'Entregador na loja! 🏪',
+      'mensagem': 'Seu entregador chegou à loja e está retirando seus doces!',
+    },
+    'em_entrega': {
+      'titulo': 'Pedido a caminho! 🛵',
+      'mensagem': 'Seu pedido saiu para entrega! Toque para acompanhar no mapa.',
+    },
+    'entregue': {
+      'titulo': 'Pedido entregue! 🍰',
+      'mensagem': 'Bom apetite! Obrigado por escolher o QueroDoce.',
+    },
+  };
+
   static Future<Entregador?> login(String email, String senha) async {
     try {
       final url = Uri.parse("$baseUrl?oper=Login");
@@ -31,6 +43,46 @@ class EntregadorController {
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  static Future<void> notificarCliente({
+    required String pedidoDocId,
+    required String novoStatus,
+    required FirebaseFirestore firestore,
+  }) async {
+    final msg = _mensagens[novoStatus];
+    if (msg == null) return;
+
+    try {
+      final pedidoDoc = await firestore
+          .collection('pedidos')
+          .doc(pedidoDocId)
+          .get();
+
+      final idCliente = pedidoDoc.data()?['idCliente']?.toString();
+      if (idCliente == null) return;
+
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(idCliente)
+          .get();
+
+      final token = userDoc.data()?['fcmToken'];
+      if (token == null) return;
+
+      await http.post(
+        Uri.parse('http://localhost/backend/Controller/EnviarNotificacao.php'),
+        body: {
+          'token': token,
+          'titulo': msg['titulo']!,
+          'mensagem': msg['mensagem']!,
+          'pedidoId': pedidoDocId,
+          'status': novoStatus,
+        },
+      );
+    } catch (e) {
+      debugPrint('Erro ao enviar notificação: $e');
     }
   }
 

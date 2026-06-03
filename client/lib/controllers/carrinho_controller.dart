@@ -57,6 +57,7 @@ class CarrinhoController {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
+
         if (data['dados'] != null && data['dados'] is List) {
           return (data['dados'] as List)
               .map((item) => CarrinhoItem.fromJson(item))
