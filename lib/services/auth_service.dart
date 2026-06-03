@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/pessoa.dart';
+import 'notification_service.dart';
 
 class AuthService {
-  static const String baseUrl = "http://200.19.1.19/usuario01/Controller/CrudUsuario.php";
+  static const String baseUrl = "http://localhost/backend/Controller/CrudUsuario.php";
   static Pessoa? _usuarioLogado;
 
   // ignore: unnecessary_getters_setters
@@ -16,8 +17,8 @@ class AuthService {
   static Future<bool> login(String email, String senha) async {
     try {
       final url = Uri.http(
-        '200.19.1.19',
-        '/usuario01/Controller/CrudUsuario.php',
+        'localhost',
+        '/backend/Controller/CrudUsuario.php',
         {
           'oper': 'Login',
           'ds_email': email,
@@ -47,6 +48,12 @@ class AuthService {
           } else if (data['dados'] is Map) {
             _usuarioLogado = Pessoa.fromJson(data['dados']);
           }
+
+          // Salva o token FCM vinculado ao usuário
+          if (_usuarioLogado != null) {
+            await NotificationService.saveTokenForUser(_usuarioLogado!.idPessoa);
+          }
+
           return true;
         }
       }

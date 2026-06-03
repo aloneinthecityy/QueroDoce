@@ -35,9 +35,6 @@ class NotificationService {
     // 5. Listeners
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationOpened);
-
-    // 6. Salva o token FCM no Firestore
-    await _saveToken();
   }
 
   static Future<void> _createAndroidChannel() async {
@@ -52,21 +49,19 @@ class NotificationService {
         ?.createNotificationChannel(channel);
   }
 
-  static Future<void> _saveToken() async {
+  static Future<void> saveTokenForUser(int idPessoa) async {
     final token = await _messaging.getToken();
     print('🔑 FCM Token: $token');
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (token != null && uid != null) {
+    if (token != null) {
       await FirebaseFirestore.instance
           .collection('users')
-          .doc(uid)
-          .update({'fcmToken': token});
+          .doc(idPessoa.toString())
+          .set({'fcmToken': token}, SetOptions(merge: true));
     }
-    // Atualiza automaticamente quando o token rotaciona
     _messaging.onTokenRefresh.listen((newToken) {
       FirebaseFirestore.instance
           .collection('users')
-          .doc(uid)
+          .doc(idPessoa.toString())
           .update({'fcmToken': newToken});
     });
   }

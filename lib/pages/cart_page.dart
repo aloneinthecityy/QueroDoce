@@ -36,6 +36,7 @@ class _CartPageState extends State<CartPage> {
     final itensData = await CarrinhoController.listarItens(usuario.idPessoa);
     setState(() {
       itens = itensData;
+      itens = List<CarrinhoItem>.from(itensData);
       isLoading = false;
     });
   }
@@ -478,7 +479,7 @@ class _CartPageState extends State<CartPage> {
       return imagem;
     }
     // Caso contrário, concatenar com o caminho base
-    return 'http://200.19.1.19/usuario01/$imagem';
+    return 'http://localhost/backend/imagens/$imagem';
   }
 
   Widget _buildHtmlImage(String src) {

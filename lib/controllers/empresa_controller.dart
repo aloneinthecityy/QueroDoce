@@ -4,7 +4,7 @@ import '../models/empresa.dart';
 
 class EmpresaController {
   static const String baseUrl =
-      "http://localhost:8000/Controller/CrudEmpresa.php";
+      "http://localhost/backend/Controller/CrudEmpresa.php";
   static String? ultimoErroLogin;
 
   /// Lista todas as empresas
