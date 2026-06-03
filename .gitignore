@@ -43,3 +43,7 @@ client/app.*.map.json
 client/android/app/debug
 client/android/app/profile
 client/android/app/release
+/build/
+**/build/
+.dart_tool/
+.pub-cache/
