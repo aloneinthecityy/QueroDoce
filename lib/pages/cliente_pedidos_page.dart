@@ -1,3 +1,4 @@
+import 'package:app/pages/acompanhar_entrega_page.dart';
 import 'package:app/services/auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -89,7 +90,7 @@ class ClientePedidosPage extends StatelessWidget {
                       separatorBuilder: (context, index) =>
                           const SizedBox(height: 12),
                       itemBuilder: (context, index) {
-                        return _pedidoCard(pedidos[index].data());
+                        return _pedidoCard(context, pedidos[index].data());
                       },
                     ),
                   ),
@@ -99,11 +100,13 @@ class ClientePedidosPage extends StatelessWidget {
     );
   }
 
-  Widget _pedidoCard(Map<String, dynamic> pedido) {
+  Widget _pedidoCard(BuildContext context, Map<String, dynamic> pedido) {
     final itens = pedido['itens'];
     final itensList = itens is List ? itens : const [];
     final valor = pedido['valorPedido'];
     final dataPedido = pedido['dataPedido'];
+    final status = _read(pedido, 'status');
+    final idPedido = _read(pedido, 'idPedido');
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -144,7 +147,7 @@ class ClientePedidosPage extends StatelessWidget {
                   ],
                 ),
               ),
-              _statusPill(_read(pedido, 'status')),
+              _statusPill(status),
             ],
           ),
           const SizedBox(height: 14),
@@ -181,6 +184,37 @@ class ClientePedidosPage extends StatelessWidget {
               ),
             );
           }),
+          if (status == 'em_entrega') ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AcompanharEntregaPage(pedidoId: idPedido),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.map_outlined, color: Colors.white),
+                label: Text(
+                  'Acompanhar Entrega em Tempo Real',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFEE0084),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

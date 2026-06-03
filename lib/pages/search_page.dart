@@ -310,7 +310,7 @@ class _SearchPageState extends State<SearchPage> {
     if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
       return imagem;
     }
-    return 'http://200.19.1.19/usuario01/$imagem';
+    return 'http://localhost/backend/$imagem';
   }
 
   Widget _buildHtmlImage(String src) {

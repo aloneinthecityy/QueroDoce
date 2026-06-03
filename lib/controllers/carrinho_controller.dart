@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/carrinho_item.dart';
 
 class CarrinhoController {
-  static const String baseUrl = "http://200.19.1.19/usuario01/Controller/CrudCarrinho.php";
+  static const String baseUrl = "http://localhost/backend/Controller/CrudCarrinho.php";
 
   static Future<bool> adicionarItem(int idPessoa, int idProduto, int quantidade) async {
     try {

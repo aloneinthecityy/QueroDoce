@@ -6,7 +6,7 @@ import '../models/entregador.dart';
 
 class EntregadorController {
   static const String baseUrl =
-      "http://localhost:8000/Controller/CrudEntregador.php";
+      "http://localhost/backend/Controller/CrudEntregador.php";
 
   /// Login do entregador usando o backend/PostgreSQL.
   ///
