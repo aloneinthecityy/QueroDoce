@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/produto.dart';
 
 class ProdutoController {
-  static const String baseUrl = "http://localhost/backend/Controller/CrudProduto.php";
+  static const String baseUrl = "http://localhost:8000/Controller/CrudProduto.php";
 
   static Future<List<Produto>> listarProdutosRecentes() async {
     try {

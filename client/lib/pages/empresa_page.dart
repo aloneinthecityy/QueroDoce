@@ -66,6 +66,7 @@ class _EmpresaPageState extends State<EmpresaPage> {
       backgroundColor: const Color(0xFFFFF7FC),
       appBar: AppBar(
         elevation: 0,
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFFFF2BA0),
         title: Row(

@@ -316,7 +316,7 @@ class _ProductPageState extends State<ProductPage> {
       return imagem;
     }
     // Caso contrário, concatenar com o caminho base
-    return 'http://localhost/backend/$imagem';
+    return 'http://localhost:8000/$imagem';
   }
 
   Widget _buildHtmlImage(String src) {

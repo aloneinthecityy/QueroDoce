@@ -1,16 +1,21 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+
 import '../models/empresa.dart';
 
 class EmpresaController {
   static const String baseUrl =
-      "http://localhost:8000/Controller/CrudEmpresa.php";
+      'http://localhost:8000/Controller/CrudEmpresa.php';
+
   static String? ultimoErroLogin;
+  static String? ultimoErroCadastro;
+  static String? ultimaMensagemCadastro;
 
   /// Lista todas as empresas
   static Future<List<Empresa>> listarEmpresas() async {
     try {
-      final url = Uri.parse("$baseUrl?oper=Listar");
+      final url = Uri.parse('$baseUrl?oper=Listar');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -31,7 +36,7 @@ class EmpresaController {
   /// Busca uma empresa pelo ID
   static Future<Empresa?> buscarEmpresa(int idEmpresa) async {
     try {
-      final url = Uri.parse("$baseUrl?oper=Consultar&id_empresa=$idEmpresa");
+      final url = Uri.parse('$baseUrl?oper=Consultar&id_empresa=$idEmpresa');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -57,7 +62,7 @@ class EmpresaController {
     ultimoErroLogin = null;
 
     try {
-      final url = Uri.parse("$baseUrl?oper=Login");
+      final url = Uri.parse('$baseUrl?oper=Login');
       final response = await http.post(
         url,
         body: {'oper': 'Login', 'ds_email': email, 'ds_senha': senha},
@@ -99,7 +104,7 @@ class EmpresaController {
         ultimoErroLogin =
             'Nao foi possivel entrar na conta da empresa agora. Tente novamente em instantes.';
       }
-      print('Erro no login: $e');
+      print('Erro no login da empresa: $e');
       return null;
     }
   }
@@ -108,7 +113,7 @@ class EmpresaController {
   static Future<List<Empresa>> listarPorCategoria(int idCategoria) async {
     try {
       final url = Uri.parse(
-        "$baseUrl?oper=ListarPorCategoria&id_categoria=$idCategoria",
+        '$baseUrl?oper=ListarPorCategoria&id_categoria=$idCategoria',
       );
       final response = await http.get(url);
 
@@ -129,21 +134,49 @@ class EmpresaController {
 
   /// Inserir nova empresa
   static Future<bool> inserirEmpresa(Empresa empresa) async {
+    ultimoErroCadastro = null;
+    ultimaMensagemCadastro = null;
+
     try {
-      final url = Uri.parse("$baseUrl?oper=Inserir");
+      final url = Uri.parse('$baseUrl?oper=Inserir');
       final response = await http.post(
         url,
-        body: empresa.toJson().map(
-          (key, value) => MapEntry(key, value.toString()),
-        ),
+        body: {
+          'oper': 'Inserir',
+          ...empresa.toJson().map(
+            (key, value) => MapEntry(key, value.toString()),
+          ),
+        },
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['mensagem'] == 1;
+      if (response.statusCode != 200) {
+        ultimoErroCadastro =
+            'Nao foi possivel concluir o cadastro da empresa agora. Tente novamente em instantes.';
+        return false;
       }
-      return false;
+
+      final responseBody = response.body.trim();
+      if (responseBody.isEmpty) {
+        ultimoErroCadastro =
+            'Recebemos uma resposta inesperada ao cadastrar a empresa. Tente novamente.';
+        return false;
+      }
+
+      final data = json.decode(responseBody);
+      final sucesso = _isSuccess(data);
+      final mensagem = _readMensagem(data);
+
+      if (!sucesso) {
+        ultimoErroCadastro = _friendlyCadastroMessage(mensagem);
+        return false;
+      }
+
+      ultimaMensagemCadastro =
+          mensagem ?? 'Cadastro da empresa realizado com sucesso.';
+      return true;
     } catch (e) {
+      ultimoErroCadastro =
+          'Nao foi possivel concluir o cadastro da empresa agora. Verifique sua conexao e tente novamente.';
       print('Erro ao inserir empresa: $e');
       return false;
     }
@@ -152,7 +185,7 @@ class EmpresaController {
   /// Alterar dados da empresa
   static Future<bool> alterarEmpresa(Empresa empresa) async {
     try {
-      final url = Uri.parse("$baseUrl?oper=Alterar");
+      final url = Uri.parse('$baseUrl?oper=Alterar');
       final response = await http.post(
         url,
         body: empresa.toJson().map(
@@ -162,7 +195,7 @@ class EmpresaController {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['NumMens'] == 1 || data['mensagem'] == 1;
+        return _isSuccess(data);
       }
       return false;
     } catch (e) {
@@ -171,15 +204,14 @@ class EmpresaController {
     }
   }
 
-  /// Excluir empresa
   static Future<bool> excluirEmpresa(int idEmpresa) async {
     try {
-      final url = Uri.parse("$baseUrl?oper=Excluir&id_empresa=$idEmpresa");
+      final url = Uri.parse('$baseUrl?oper=Excluir&id_empresa=$idEmpresa');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        return data['mensagem'] == 1;
+        return _isSuccess(data);
       }
       return false;
     } catch (e) {
@@ -194,9 +226,7 @@ class EmpresaController {
     }
 
     if (data is! Map) return null;
-
-    final numMens = data['NumMens'] ?? data['numMens'] ?? data['mensagem'];
-    if (numMens == 0 || numMens == '0') return null;
+    if (!_isSuccess(data)) return null;
 
     final dados = data['dados'] ?? data['Dados'] ?? data['DADOS'];
 
@@ -209,6 +239,12 @@ class EmpresaController {
     }
 
     return _asMap(data);
+  }
+
+  static bool _isSuccess(dynamic data) {
+    if (data is! Map) return false;
+    final value = data['NumMens'] ?? data['numMens'] ?? data['mensagem'];
+    return value == 1 || value == '1';
   }
 
   static String? _readMensagem(dynamic data) {
@@ -235,8 +271,7 @@ class EmpresaController {
   static String _friendlyLoginMessage(String? mensagem) {
     final texto = (mensagem ?? '').toLowerCase();
 
-    if (texto.contains('e-mail') &&
-        (texto.contains('nao encontrado') || texto.contains('não encontrado'))) {
+    if (texto.contains('e-mail') && texto.contains('nao encontrado')) {
       return 'Nao encontramos uma conta de empresa com esse e-mail. Confira o endereco digitado e tente novamente.';
     }
 
@@ -251,16 +286,50 @@ class EmpresaController {
     return 'Nao foi possivel entrar na conta da empresa agora. Tente novamente em instantes.';
   }
 
+  static String _friendlyCadastroMessage(String? mensagem) {
+    final texto = (mensagem ?? '').toLowerCase();
+
+    if (texto.contains('cadastrada com esse e-mail')) {
+      return 'Ja existe uma empresa cadastrada com esse e-mail. Use outro endereco ou tente entrar na conta.';
+    }
+
+    if (texto.contains('cadastrada com esse cnpj')) {
+      return 'Ja existe uma empresa cadastrada com esse CNPJ. Confira os dados informados.';
+    }
+
+    if (texto.contains('cnpj valido')) {
+      return 'Confira o CNPJ informado e tente novamente.';
+    }
+
+    if (texto.contains('e-mail valido')) {
+      return 'Confira o e-mail da empresa e tente novamente.';
+    }
+
+    if (texto.contains('cep valido')) {
+      return 'Confira o CEP informado e tente novamente.';
+    }
+
+    if (texto.contains('categoria principal') ||
+        texto.contains('categoria da empresa')) {
+      return 'Escolha pelo menos uma categoria da empresa para concluir o cadastro.';
+    }
+
+    if (texto.contains('senha')) {
+      return mensagem ??
+          'Confira a senha informada e tente novamente.';
+    }
+
+    if (mensagem != null && mensagem.trim().isNotEmpty) {
+      return mensagem;
+    }
+
+    return 'Nao foi possivel concluir o cadastro da empresa agora. Tente novamente em instantes.';
+  }
+
   static String? _readMensagemFromException(FormatException exception) {
     final text = exception.message;
-    if (text.contains('E-mail não encontrado')) {
-      return 'E-mail não encontrado';
-    }
     if (text.contains('E-mail nao encontrado')) {
       return 'E-mail nao encontrado';
-    }
-    if (text.contains('Senha inválida')) {
-      return 'Senha inválida';
     }
     if (text.contains('Senha invalida')) {
       return 'Senha invalida';

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/empresa.dart';
+
+import '../controllers/categoria_controller.dart';
 import '../controllers/empresa_controller.dart';
+import '../models/categoria.dart';
+import '../models/empresa.dart';
 import '../utils/html_image.dart' as html_image;
 
 class EmpresaPerfilTab extends StatefulWidget {
@@ -28,7 +31,11 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
   late TextEditingController _complementoController;
   late TextEditingController _imagemController;
   late TextEditingController _senhaController;
+
   bool _isLoading = false;
+  bool _isLoadingCategorias = false;
+  List<Categoria> _categorias = [];
+  final Set<int> _categoriasSelecionadas = {};
 
   @override
   void initState() {
@@ -37,15 +44,29 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
     _cnpjController = TextEditingController(text: widget.empresa.nuCnpj);
     _emailController = TextEditingController(text: widget.empresa.dsEmail);
     _cepController = TextEditingController(text: widget.empresa.nuCep);
-    _enderecoController = TextEditingController(text: widget.empresa.nuEndereco.toString());
-    _complementoController = TextEditingController(text: widget.empresa.dsComplemento);
+    _enderecoController =
+        TextEditingController(text: widget.empresa.nuEndereco.toString());
+    _complementoController =
+        TextEditingController(text: widget.empresa.dsComplemento);
     _imagemController = TextEditingController(text: widget.empresa.nmImagem);
     _senhaController = TextEditingController(text: widget.empresa.dsSenha);
+    _categoriasSelecionadas.addAll(widget.empresa.idsCategoria);
     _imagemController.addListener(_onImagemChanged);
+    _carregarCategorias();
   }
 
   void _onImagemChanged() {
     setState(() {});
+  }
+
+  Future<void> _carregarCategorias() async {
+    setState(() => _isLoadingCategorias = true);
+    final categorias = await CategoriaController.listarCategorias();
+    if (!mounted) return;
+    setState(() {
+      _categorias = categorias;
+      _isLoadingCategorias = false;
+    });
   }
 
   @override
@@ -67,6 +88,14 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
 
     setState(() => _isLoading = true);
 
+    final idsCategoria = _categoriasSelecionadas.toList()..sort();
+    final nomesCategoria = <String>[];
+    for (final categoria in _categorias) {
+      if (_categoriasSelecionadas.contains(categoria.idCategoria)) {
+        nomesCategoria.add(categoria.nmCategoria);
+      }
+    }
+
     final empresaAtualizada = Empresa(
       idEmpresa: widget.empresa.idEmpresa,
       nmEmpresa: _nomeController.text.trim(),
@@ -77,10 +106,15 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
       dsComplemento: _complementoController.text.trim(),
       nmImagem: _imagemController.text.trim(),
       dsSenha: _senhaController.text.trim(),
+      idCategoria: idsCategoria.isNotEmpty ? idsCategoria.first : 0,
+      nmCategoria: nomesCategoria.join(', '),
+      idsCategoria: idsCategoria,
+      nomesCategoria: nomesCategoria,
     );
 
     final sucesso = await EmpresaController.alterarEmpresa(empresaAtualizada);
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (sucesso) {
@@ -109,12 +143,10 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
       backgroundColor: const Color(0xFFFFF7FC),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(
-                color: Color(0xFFFF2BA0),
-              ),
+              child: CircularProgressIndicator(color: Color(0xFFFF2BA0)),
             )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
+              padding: const EdgeInsets.all(24),
               child: Center(
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 550),
@@ -126,14 +158,14 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
                       side: const BorderSide(color: Color(0xFFF8CFE5)),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(24.0),
+                      padding: const EdgeInsets.all(24),
                       child: Form(
                         key: _formKey,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Informações da Loja',
+                              'Informacoes da Loja',
                               style: GoogleFonts.pixelifySans(
                                 fontSize: 20,
                                 color: const Color(0xFFFF2BA0),
@@ -141,63 +173,90 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
                               ),
                             ),
                             const Divider(height: 24, color: Color(0xFFF8CFE5)),
-                            
-                            // Nome da Empresa
                             TextFormField(
                               controller: _nomeController,
                               decoration: const InputDecoration(
                                 labelText: 'Nome Fantasia',
-                                prefixIcon: Icon(Icons.storefront, color: Color(0xFFFF2BA0)),
-                                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF2BA0))),
+                                prefixIcon: Icon(
+                                  Icons.storefront,
+                                  color: Color(0xFFFF2BA0),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xFFFF2BA0)),
+                                ),
                               ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'Insira o nome fantasia' : null,
+                              validator: (v) => v == null || v.trim().isEmpty
+                                  ? 'Insira o nome fantasia'
+                                  : null,
                             ),
                             const SizedBox(height: 16),
-
-                            // CNPJ
                             TextFormField(
                               controller: _cnpjController,
                               decoration: const InputDecoration(
                                 labelText: 'CNPJ',
-                                prefixIcon: Icon(Icons.badge_outlined, color: Color(0xFFFF2BA0)),
-                                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF2BA0))),
+                                prefixIcon: Icon(
+                                  Icons.badge_outlined,
+                                  color: Color(0xFFFF2BA0),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xFFFF2BA0)),
+                                ),
                               ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'Insira o CNPJ' : null,
+                              validator: (v) => v == null || v.trim().isEmpty
+                                  ? 'Insira o CNPJ'
+                                  : null,
                             ),
                             const SizedBox(height: 16),
-
-                            // Email
+                            _buildCategoriaField(),
+                            const SizedBox(height: 16),
                             TextFormField(
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               decoration: const InputDecoration(
                                 labelText: 'E-mail',
-                                prefixIcon: Icon(Icons.email_outlined, color: Color(0xFFFF2BA0)),
-                                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF2BA0))),
+                                prefixIcon: Icon(
+                                  Icons.email_outlined,
+                                  color: Color(0xFFFF2BA0),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xFFFF2BA0)),
+                                ),
                               ),
                               validator: (v) {
-                                if (v == null || v.trim().isEmpty) return 'Insira o e-mail';
-                                if (!v.contains('@')) return 'E-mail inválido';
+                                if (v == null || v.trim().isEmpty) {
+                                  return 'Insira o e-mail';
+                                }
+                                if (!v.contains('@')) {
+                                  return 'E-mail invalido';
+                                }
                                 return null;
                               },
                             ),
                             const SizedBox(height: 16),
-
-                            // Senha
                             TextFormField(
                               controller: _senhaController,
                               obscureText: true,
                               decoration: const InputDecoration(
                                 labelText: 'Senha de Acesso',
-                                prefixIcon: Icon(Icons.lock_outline, color: Color(0xFFFF2BA0)),
-                                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF2BA0))),
+                                prefixIcon: Icon(
+                                  Icons.lock_outline,
+                                  color: Color(0xFFFF2BA0),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xFFFF2BA0)),
+                                ),
                               ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'Insira a senha' : null,
+                              validator: (v) => v == null || v.trim().isEmpty
+                                  ? 'Insira a senha'
+                                  : null,
                             ),
                             const SizedBox(height: 24),
-
                             Text(
-                              'Localização & Imagem',
+                              'Localizacao e Imagem',
                               style: GoogleFonts.pixelifySans(
                                 fontSize: 18,
                                 color: const Color(0xFFFF2BA0),
@@ -205,74 +264,96 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
                               ),
                             ),
                             const Divider(height: 24, color: Color(0xFFF8CFE5)),
-
-                            // CEP
                             TextFormField(
                               controller: _cepController,
                               decoration: const InputDecoration(
                                 labelText: 'CEP',
-                                prefixIcon: Icon(Icons.map_outlined, color: Color(0xFFFF2BA0)),
-                                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF2BA0))),
+                                prefixIcon: Icon(
+                                  Icons.map_outlined,
+                                  color: Color(0xFFFF2BA0),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xFFFF2BA0)),
+                                ),
                               ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'Insira o CEP' : null,
+                              validator: (v) => v == null || v.trim().isEmpty
+                                  ? 'Insira o CEP'
+                                  : null,
                             ),
                             const SizedBox(height: 16),
-
                             Row(
                               children: [
-                                // Número do Endereço
                                 Expanded(
                                   flex: 2,
                                   child: TextFormField(
                                     controller: _enderecoController,
                                     keyboardType: TextInputType.number,
                                     decoration: const InputDecoration(
-                                      labelText: 'Número',
-                                      prefixIcon: Icon(Icons.home_outlined, color: Color(0xFFFF2BA0)),
-                                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF2BA0))),
+                                      labelText: 'Numero',
+                                      prefixIcon: Icon(
+                                        Icons.home_outlined,
+                                        color: Color(0xFFFF2BA0),
+                                      ),
+                                      focusedBorder: UnderlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Color(0xFFFF2BA0)),
+                                      ),
                                     ),
                                     validator: (v) {
-                                      if (v == null || v.trim().isEmpty) return 'Obrigatório';
-                                      if (int.tryParse(v) == null) return 'Inválido';
+                                      if (v == null || v.trim().isEmpty) {
+                                        return 'Obrigatorio';
+                                      }
+                                      if (int.tryParse(v) == null) {
+                                        return 'Invalido';
+                                      }
                                       return null;
                                     },
                                   ),
                                 ),
                                 const SizedBox(width: 16),
-                                // Complemento
                                 Expanded(
                                   flex: 3,
                                   child: TextFormField(
                                     controller: _complementoController,
                                     decoration: const InputDecoration(
                                       labelText: 'Complemento',
-                                      prefixIcon: Icon(Icons.info_outline, color: Color(0xFFFF2BA0)),
-                                      focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF2BA0))),
+                                      prefixIcon: Icon(
+                                        Icons.info_outline,
+                                        color: Color(0xFFFF2BA0),
+                                      ),
+                                      focusedBorder: UnderlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Color(0xFFFF2BA0)),
+                                      ),
                                     ),
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 16),
-
-                            // Preview da imagem
                             _buildPreviewLogo(),
                             const SizedBox(height: 16),
-
-                            // Imagem da Loja
                             TextFormField(
                               controller: _imagemController,
                               decoration: const InputDecoration(
                                 labelText: 'Logo / Imagem da Empresa',
-                                prefixIcon: Icon(Icons.image_outlined, color: Color(0xFFFF2BA0)),
-                                focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: Color(0xFFFF2BA0))),
-                                helperText: 'Caminho relativo (ex: logo.png) ou URL',
+                                prefixIcon: Icon(
+                                  Icons.image_outlined,
+                                  color: Color(0xFFFF2BA0),
+                                ),
+                                focusedBorder: UnderlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Color(0xFFFF2BA0)),
+                                ),
+                                helperText:
+                                    'Caminho relativo (ex: logo.png) ou URL',
                               ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'Insira o caminho da imagem' : null,
+                              validator: (v) => v == null || v.trim().isEmpty
+                                  ? 'Insira o caminho da imagem'
+                                  : null,
                             ),
                             const SizedBox(height: 32),
-
-                            // Botão Salvar
                             SizedBox(
                               width: double.infinity,
                               height: 48,
@@ -285,7 +366,7 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
                                 ),
                                 onPressed: _salvarPerfil,
                                 child: Text(
-                                  'Salvar Alterações',
+                                  'Salvar Alteracoes',
                                   style: GoogleFonts.inter(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -305,6 +386,91 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
     );
   }
 
+  Widget _buildCategoriaField() {
+    if (_isLoadingCategorias) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: CircularProgressIndicator(color: Color(0xFFFF2BA0)),
+        ),
+      );
+    }
+
+    return FormField<Set<int>>(
+      initialValue: _categoriasSelecionadas,
+      validator: (_) {
+        if (_categoriasSelecionadas.isEmpty) {
+          return 'Escolha pelo menos uma categoria da empresa';
+        }
+        return null;
+      },
+      builder: (field) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Categorias',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey.shade700,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: field.hasError
+                      ? Colors.red.shade700
+                      : const Color(0xFFF8CFE5),
+                ),
+              ),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _categorias.map((categoria) {
+                  final selected =
+                      _categoriasSelecionadas.contains(categoria.idCategoria);
+                  return FilterChip(
+                    label: Text(categoria.nmCategoria),
+                    selected: selected,
+                    selectedColor: const Color(0xFFFFE4F2),
+                    checkmarkColor: const Color(0xFFFF2BA0),
+                    side: BorderSide(
+                      color: selected
+                          ? const Color(0xFFFF2BA0)
+                          : const Color(0xFFF8CFE5),
+                    ),
+                    onSelected: (value) {
+                      setState(() {
+                        if (value) {
+                          _categoriasSelecionadas.add(categoria.idCategoria);
+                        } else {
+                          _categoriasSelecionadas.remove(categoria.idCategoria);
+                        }
+                      });
+                      field.didChange(_categoriasSelecionadas);
+                    },
+                  );
+                }).toList(),
+              ),
+            ),
+            if (field.hasError) ...[
+              const SizedBox(height: 6),
+              Text(
+                field.errorText!,
+                style: TextStyle(color: Colors.red.shade700, fontSize: 12),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildPreviewLogo() {
     final path = _imagemController.text.trim();
     String src = '';
@@ -320,7 +486,7 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
       child: Column(
         children: [
           Text(
-            'Pré-visualização do Logo',
+            'Pre-visualizacao do Logo',
             style: GoogleFonts.inter(
               fontSize: 12,
               fontWeight: FontWeight.w600,

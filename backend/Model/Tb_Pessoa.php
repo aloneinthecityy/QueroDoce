@@ -353,6 +353,18 @@ class Tb_Pessoa extends Base
                 throw new Exception("senha incorreto");
             }
 
+            $stmtEntregador = $this->conexao->prepare("
+                SELECT 1 FROM tb_entregador
+                WHERE id_entregador = :id
+                LIMIT 1
+            ");
+            $stmtEntregador->bindValue(':id', $usuario['id_pessoa'], PDO::PARAM_INT);
+            $stmtEntregador->execute();
+
+            if ($stmtEntregador->fetch(PDO::FETCH_ASSOC)) {
+                throw new Exception("Esta conta pertence a um entregador. Use o acesso de entregador.");
+            }
+
             $this->banco->setMensagem(1, "Login permitido");
             $this->banco->setDados(1, $usuario);
         } catch (Exception $e) {

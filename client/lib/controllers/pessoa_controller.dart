@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/pessoa.dart';
 
 class PessoaController {
-  static const String baseUrl = "http://localhost/backend/Controller/CrudUsuario.php";
+  static const String baseUrl = "http://localhost:8000/Controller/CrudUsuario.php";
 
   static Future<String?> buscarEndereco(int idPessoa) async {
     try {

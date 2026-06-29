@@ -22,6 +22,8 @@ $s_nu_cep         = isset($_REQUEST['nu_cep']) ? $_REQUEST['nu_cep'] : "";
 $s_ds_complemento = isset($_REQUEST['ds_complemento']) ? $_REQUEST['ds_complemento'] : "";
 $i_nu_endereco    = isset($_REQUEST['nu_endereco']) ? $_REQUEST['nu_endereco'] : 0;
 $s_nm_imagem       = isset($_REQUEST['nm_imagem']) ? $_REQUEST['nm_imagem'] : "";
+$i_id_categoria    = isset($_REQUEST['id_categoria']) ? $_REQUEST['id_categoria'] : 0;
+$s_id_categorias   = isset($_REQUEST['id_categorias']) ? $_REQUEST['id_categorias'] : $i_id_categoria;
 
 
 
@@ -45,6 +47,7 @@ try {
     $Tb_empresa->SetDsComplemento($s_ds_complemento);
     $Tb_empresa->SetNuEndereco($i_nu_endereco);
     $Tb_empresa->SetNmImagem($s_nm_imagem);
+    $Tb_empresa->SetIdCategoria($s_id_categorias);
 
 
     switch ($Oper) {

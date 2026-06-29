@@ -2,6 +2,8 @@ import 'package:app/controllers/entregador_controller.dart';
 import 'package:app/controllers/empresa_controller.dart';
 import 'package:app/entregador_page.dart';
 import 'package:app/pages/empresa_page.dart';
+import 'package:app/pages/role_register_page.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -57,7 +59,8 @@ class _RoleLoginPageState extends State<RoleLoginPage> {
 
     if (entregador == null) {
       _showError(
-        'Nao encontramos uma conta de entregador com esse e-mail ou a senha nao confere.',
+        EntregadorController.ultimoErroLogin ??
+            'Nao encontramos uma conta de entregador com esse e-mail ou a senha nao confere.',
       );
       return;
     }
@@ -112,6 +115,25 @@ class _RoleLoginPageState extends State<RoleLoginPage> {
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.red.shade700,
+      ),
+    );
+  }
+
+  Future<void> _abrirCadastro() async {
+    final mensagem = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RoleRegisterPage(isEntregador: _isEntregador),
+      ),
+    );
+
+    if (!mounted || mensagem == null) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(mensagem),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.green,
       ),
     );
   }
@@ -183,7 +205,31 @@ class _RoleLoginPageState extends State<RoleLoginPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 10),
+                      RichText(
+                        textAlign: TextAlign.center,
+                        text: TextSpan(
+                          text: 'Ainda nao tem cadastro? ',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: const Color(0xFF313130),
+                            fontWeight: FontWeight.w300,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Cadastre-se',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFFEE0084),
+                                fontWeight: FontWeight.w900,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = _loading ? null : _abrirCadastro,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       const Divider(
                         color: Color(0xFFFBD0E8),
                         thickness: 0.6,

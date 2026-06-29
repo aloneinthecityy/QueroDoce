@@ -15,6 +15,12 @@ require_once('..' . DIRECTORY_SEPARATOR . 'Model' . DIRECTORY_SEPARATOR . 'Banco
 $i_id_entregador  = isset($_REQUEST['id_entregador']) ? $_REQUEST['id_entregador'] : 0;
 $s_tp_locomocao   = isset($_REQUEST['tp_locomocao']) ? $_REQUEST['tp_locomocao'] : "";
 $s_nu_cnh         = isset($_REQUEST['nu_cnh']) ? $_REQUEST['nu_cnh'] : "";
+$s_nm_pessoa      = isset($_REQUEST['nm_pessoa']) ? $_REQUEST['nm_pessoa'] : "";
+$s_nu_cpf         = isset($_REQUEST['nu_cpf']) ? $_REQUEST['nu_cpf'] : "";
+$s_nu_cel         = isset($_REQUEST['nu_cel']) ? $_REQUEST['nu_cel'] : "";
+$s_nu_cep         = isset($_REQUEST['nu_cep']) ? $_REQUEST['nu_cep'] : "";
+$s_ds_complemento = isset($_REQUEST['ds_complemento']) ? $_REQUEST['ds_complemento'] : "";
+$i_nu_endereco    = isset($_REQUEST['nu_endereco']) ? $_REQUEST['nu_endereco'] : 0;
 
 $s_ds_email       = isset($_REQUEST['ds_email']) ? $_REQUEST['ds_email'] : "";
 $s_ds_senha       = isset($_REQUEST['ds_senha']) ? $_REQUEST['ds_senha'] : "";
@@ -33,8 +39,20 @@ try {
     $Tb_entregador->SetIdEntregador($i_id_entregador);
     $Tb_entregador->SetTpLocomocao($s_tp_locomocao);
     $Tb_entregador->SetNuCNH($s_nu_cnh);
+    $Tb_entregador->SetNmPessoa($s_nm_pessoa);
+    $Tb_entregador->SetNuCPF($s_nu_cpf);
+    $Tb_entregador->SetNuCel($s_nu_cel);
+    $Tb_entregador->SetDsEmail($s_ds_email);
+    $Tb_entregador->SetDsSenha($s_ds_senha);
+    $Tb_entregador->SetNuCep($s_nu_cep);
+    $Tb_entregador->SetDsComplemento($s_ds_complemento);
+    $Tb_entregador->SetNuEndereco($i_nu_endereco);
 
     switch ($Oper) {
+
+        case 'CadastrarCompleto':
+            $Tb_entregador->CadastrarCompleto();
+            break;
 
         case 'Inserir':
             $Tb_entregador->Inserir();
