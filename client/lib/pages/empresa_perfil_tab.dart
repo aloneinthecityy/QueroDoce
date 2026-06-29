@@ -310,7 +310,7 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
       if (path.startsWith('http://') || path.startsWith('https://')) {
         src = path;
       } else {
-        src = 'http://localhost/backend/$path';
+        src = 'http://192.168.15.5/backend/$path';
       }
     }
 

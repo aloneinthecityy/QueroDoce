@@ -4,7 +4,7 @@ import '../models/pessoa.dart';
 import 'notification_service.dart';
 
 class AuthService {
-  static const String baseUrl = "http://localhost/backend/Controller/CrudUsuario.php";
+  static const String baseUrl = "http://192.168.15.5/backend/Controller/CrudUsuario.php";
   static Pessoa? _usuarioLogado;
 
   // ignore: unnecessary_getters_setters

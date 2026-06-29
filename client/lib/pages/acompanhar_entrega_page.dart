@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:app/services/notification_service.dart'; // 👈 adicionado
+import 'package:app/services/notification_service.dart';
 
 class AcompanharEntregaPage extends StatefulWidget {
   final String pedidoId;
@@ -19,18 +19,20 @@ class AcompanharEntregaPage extends StatefulWidget {
 class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
   final MapController _mapController = MapController();
 
+  // Estado para guardar a geolocalização do cliente
   LatLng? _posicaoCliente;
   String? _ultimoEnderecoBuscado;
   bool _buscandoEndereco = false;
-  bool _cameraAjustada = false;
+  bool _cameraAjustada = false; // Controla se a câmera já enquadrou o cliente e entregador
 
   @override
   void dispose() {
-    // 👇 Cancela a notificação persistente ao sair da tela
+    // Cancela a notificação persistente ao sair da tela
     NotificationService.cancelarNotificacaoPersistente();
     super.dispose();
   }
 
+  // Função assíncrona para transformar o texto do endereço em coordenadas LatLng
   Future<void> _geocodeEndereco(String endereco) async {
     if (_buscandoEndereco || _ultimoEnderecoBuscado == endereco) return;
     _buscandoEndereco = true;
@@ -112,7 +114,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
           final localizacao = dados['localizacaoEntregador'];
           final String? enderecoCliente = dados['enderecoEntrega'];
 
-          // 👇 Reage ao status do pedido para notificação persistente
+          // Reage ao status do pedido para notificação persistente
           if (status == 'em_entrega') {
             NotificationService.mostrarNotificacaoPersistente(
               titulo: '🛵 Pedido a caminho!',
@@ -156,6 +158,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
           final double lng = localizacao['longitude'];
           final LatLng posicaoEntregador = LatLng(lat, lng);
 
+          // Atualiza a câmera para enquadrar o entregador e o cliente (uma única vez ao carregar a rota)
           if (!_cameraAjustada) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (_posicaoCliente != null) {
@@ -163,7 +166,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
                 _mapController.fitCamera(
                   CameraFit.bounds(
                     bounds: bounds,
-                    padding: const EdgeInsets.all(70.0),
+                    padding: const EdgeInsets.all(70.0), // margem de segurança nas bordas do mapa
                   ),
                 );
                 _cameraAjustada = true;
@@ -186,6 +189,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
               ),
               MarkerLayer(
                 markers: [
+                // Marcador do entregador (Motinha)
                   Marker(
                     point: posicaoEntregador,
                     width: 50,
@@ -196,6 +200,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
                       size: 40,
                     ),
                   ),
+                  // Marcador da residência do cliente (Casa)
                   if (_posicaoCliente != null)
                     Marker(
                       point: _posicaoCliente!,
@@ -203,7 +208,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
                       height: 50,
                       child: const Icon(
                         Icons.home_work,
-                        color: Color(0xFF3F51B5),
+                        color: Color(0xFF3F51B5), // Azul para contraste claro com a moto rosa
                         size: 40,
                       ),
                     ),

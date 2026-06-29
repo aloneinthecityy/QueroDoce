@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
 class EntregadorController {
-  static const String baseUrl = "http://localhost/backend/Controller/CrudEntregador.php";
+  static const String baseUrl = "http://192.168.15.5/backend/Controller/CrudEntregador.php";
 
   static const Map<String, Map<String, String>> _mensagens = {
     'aceito': {
@@ -72,7 +72,7 @@ class EntregadorController {
       if (token == null) return;
 
       await http.post(
-        Uri.parse('http://localhost/backend/Controller/EnviarNotificacao.php'),
+        Uri.parse('http://192.168.15.5/backend/Controller/EnviarNotificacao.php'),
         body: {
           'token': token,
           'titulo': msg['titulo']!,

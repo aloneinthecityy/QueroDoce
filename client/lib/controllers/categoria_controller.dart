@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/categoria.dart';
 
 class CategoriaController {
-  static const String baseUrl = "http://localhost/backend/Controller/CrudCategoria.php";
+  static const String baseUrl = "http://192.168.15.5/backend/Controller/CrudCategoria.php";
 
   static Future<List<Categoria>> listarCategorias() async {
     try {

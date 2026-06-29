@@ -14,7 +14,7 @@ class NotificationService {
   static final _messaging = FirebaseMessaging.instance;
   static final _localNotifications = FlutterLocalNotificationsPlugin();
   static const int _pedidoNotificationId = 42;
-  static const int _pedidoOngoingNotificationId = 99; // 👈 adicionado
+  static const int _pedidoOngoingNotificationId = 99;
 
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -34,7 +34,6 @@ class NotificationService {
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationOpened);
 
-    // 👇 adicionado: app estava fechado e foi aberto pela notificação
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
       final pedidoId = initialMessage.data['pedidoId'];
@@ -109,7 +108,6 @@ class NotificationService {
     );
   }
 
-  // 👇 adicionado: mostra notificação persistente (não pode ser descartada)
   static Future<void> mostrarNotificacaoPersistente({
     required String titulo,
     required String corpo,
@@ -132,7 +130,6 @@ class NotificationService {
     );
   }
 
-  // 👇 adicionado: cancela quando pedido for entregue ou cancelado
   static Future<void> cancelarNotificacaoPersistente() async {
     await _localNotifications.cancel(_pedidoOngoingNotificationId);
   }
