@@ -39,15 +39,21 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
     _ultimoEnderecoBuscado = endereco;
 
     try {
+      // Remove a expressão "CEP 12345-678" do endereço de busca, pois a busca textual do
+      // Nominatim costuma falhar ou se confundir quando o CEP está incluído dessa forma.
       String queryEndereco = endereco.replaceAll(RegExp(r',?\s*CEP\s*\d{5}-?\d{3}', caseSensitive: false), '');
       queryEndereco = queryEndereco.trim();
 
       debugPrint('DEBUG - Geocodificando endereço limpo: "$queryEndereco" (Original: "$endereco")');
 
+      // Adicionamos &countrycodes=br para restringir as buscas apenas ao Brasil
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(queryEndereco)}&countrycodes=br&format=json&limit=1'
       );
 
+      // Na Web (Chrome), não enviamos cabeçalhos de identificação para evitar problemas de CORS preflight.
+      // Em dispositivos móveis físicos (Android/iOS), enviamos o User-Agent para evitar que o
+      // Nominatim bloqueie a chamada identificando-a como bot anônimo da biblioteca HTTP Dart.
       final Map<String, String> headers = {};
       if (!kIsWeb) {
         headers['User-Agent'] = 'QueroDoceApp/1.0 (contato@querodoce.com)';
