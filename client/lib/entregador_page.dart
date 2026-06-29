@@ -49,7 +49,7 @@ class _EntregadorPageState extends State<EntregadorPage> {
   Future<void> _aceitarEntrega(String pedidoDocId) async {
     if (!_temEntregadorValido) {
       _showSnackBar(
-        'ID do entregador invalido. Saia e faca login novamente.',
+        'Nao conseguimos confirmar sua conta de entregador. Saia e entre novamente para continuar.',
         isError: true,
       );
       return;
@@ -73,14 +73,20 @@ class _EntregadorPageState extends State<EntregadorPage> {
       _showSnackBar('Entrega aceita com sucesso!');
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('Nao foi possivel aceitar a entrega: $e', isError: true);
+      _showSnackBar(
+        'Nao deu para aceitar esta entrega agora. Tente novamente em instantes.',
+        isError: true,
+      );
     }
   }
 
   Future<void> _iniciarRastreamento(String pedidoDocId) async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      _showSnackBar('Por favor, ative a localização no seu dispositivo.', isError: true);
+      _showSnackBar(
+        'Ative a localizacao do dispositivo para continuar com a entrega.',
+        isError: true,
+      );
       return;
     }
 
@@ -88,13 +94,19 @@ class _EntregadorPageState extends State<EntregadorPage> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        _showSnackBar('Permissão de localização negada.', isError: true);
+        _showSnackBar(
+          'Precisamos da sua localizacao para acompanhar a entrega.',
+          isError: true,
+        );
         return;
       }
     }
     
     if (permission == LocationPermission.deniedForever) {
-      _showSnackBar('Permissão de localização permanentemente negada.', isError: true);
+      _showSnackBar(
+        'A localizacao foi bloqueada no dispositivo. Libere a permissao nas configuracoes para continuar.',
+        isError: true,
+      );
       return;
     }
 
@@ -139,7 +151,7 @@ class _EntregadorPageState extends State<EntregadorPage> {
   Future<void> _atualizarStatus(String pedidoDocId, String novoStatus) async {
     if (!_temEntregadorValido) {
       _showSnackBar(
-        'ID do entregador invalido. Saia e faca login novamente.',
+        'Nao conseguimos confirmar sua conta de entregador. Saia e entre novamente para continuar.',
         isError: true,
       );
       return;
@@ -166,7 +178,10 @@ class _EntregadorPageState extends State<EntregadorPage> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showSnackBar('Erro ao atualizar status: $e', isError: true);
+      _showSnackBar(
+        'Nao deu para atualizar o status da entrega agora. Tente novamente.',
+        isError: true,
+      );
     }
   }
 
@@ -267,8 +282,9 @@ class _EntregadorPageState extends State<EntregadorPage> {
           if (snapshot.hasError) {
             return _buildStateMessage(
               icon: Icons.wifi_off_rounded,
-              title: 'Erro de conexao',
-              message: 'Nao foi possivel carregar os pedidos disponiveis.',
+              title: 'Nao conseguimos carregar os pedidos',
+              message:
+                  'Tente atualizar novamente em instantes para ver novas entregas.',
             );
           }
 
@@ -320,8 +336,9 @@ class _EntregadorPageState extends State<EntregadorPage> {
           if (snapshot.hasError) {
             return _buildStateMessage(
               icon: Icons.cloud_off_rounded,
-              title: 'Erro de conexao',
-              message: 'Nao foi possivel carregar suas entregas.',
+              title: 'Nao conseguimos carregar suas entregas',
+              message:
+                  'Atualize a tela em instantes para acompanhar seus pedidos.',
             );
           }
 

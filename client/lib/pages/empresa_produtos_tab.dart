@@ -38,7 +38,7 @@ class _EmpresaProdutosTabState extends State<EmpresaProdutosTab> {
     if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
       return imagem;
     }
-    return 'http://localhost/backend/$imagem';
+    return 'http://localhost:8000/$imagem';
   }
 
   Widget _buildHtmlImage(String src) {
@@ -87,7 +87,9 @@ class _EmpresaProdutosTabState extends State<EmpresaProdutosTab> {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Erro ao excluir o doce. Tente novamente.'),
+            content: Text(
+              'Nao deu para excluir esse doce agora. Tente novamente.',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -255,7 +257,9 @@ class _EmpresaProdutosTabState extends State<EmpresaProdutosTab> {
         setState(() => isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Ocorreu um erro ao salvar o doce. Tente novamente.'),
+            content: Text(
+              'Nao deu para salvar esse doce agora. Tente novamente.',
+            ),
             backgroundColor: Colors.red,
           ),
         );

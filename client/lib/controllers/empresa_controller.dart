@@ -4,7 +4,7 @@ import '../models/empresa.dart';
 
 class EmpresaController {
   static const String baseUrl =
-      "http://localhost/backend/Controller/CrudEmpresa.php";
+      "http://localhost:8000/Controller/CrudEmpresa.php";
   static String? ultimoErroLogin;
 
   /// Lista todas as empresas
@@ -64,13 +64,15 @@ class EmpresaController {
       );
 
       if (response.statusCode != 200) {
-        ultimoErroLogin = 'Erro no servidor: ${response.statusCode}';
+        ultimoErroLogin =
+            'Nao foi possivel entrar na conta da empresa agora. Tente novamente em instantes.';
         return null;
       }
 
       final responseBody = response.body.trim();
       if (responseBody.isEmpty) {
-        ultimoErroLogin = 'Resposta vazia do servidor.';
+        ultimoErroLogin =
+            'Recebemos uma resposta inesperada ao entrar na conta da empresa. Tente novamente.';
         return null;
       }
 
@@ -79,22 +81,23 @@ class EmpresaController {
       final empresaData = _extractEmpresaData(data);
 
       if (empresaData == null) {
-        ultimoErroLogin =
-            mensagem ?? 'Empresa nao encontrada ou senha invalida.';
+        ultimoErroLogin = _friendlyLoginMessage(mensagem);
         return null;
       }
 
       return Empresa.fromJson(empresaData);
     } on FormatException catch (e) {
-      ultimoErroLogin = 'Resposta invalida do servidor: $e';
+      final mensagem = _readMensagemFromException(e);
+      ultimoErroLogin = _friendlyLoginMessage(mensagem);
       return null;
     } catch (e) {
       final errorText = e.toString();
       if (errorText.contains('Failed to fetch')) {
         ultimoErroLogin =
-            'Nao foi possivel acessar o backend. Verifique se o servidor PHP esta rodando em http://localhost/backend e se o CORS esta liberado.';
+            'Nao foi possivel conectar ao sistema da empresa agora. Verifique sua conexao e tente novamente.';
       } else {
-        ultimoErroLogin = 'Erro no login: $e';
+        ultimoErroLogin =
+            'Nao foi possivel entrar na conta da empresa agora. Tente novamente em instantes.';
       }
       print('Erro no login: $e');
       return null;
@@ -192,8 +195,8 @@ class EmpresaController {
 
     if (data is! Map) return null;
 
-    final mensagem = data['mensagem'] ?? data['Mensagem'] ?? data['MENSAGEM'];
-    if (mensagem == 0 || mensagem == '0') return null;
+    final numMens = data['NumMens'] ?? data['numMens'] ?? data['mensagem'];
+    if (numMens == 0 || numMens == '0') return null;
 
     final dados = data['dados'] ?? data['Dados'] ?? data['DADOS'];
 
@@ -227,5 +230,41 @@ class EmpresaController {
   static Map<String, dynamic>? _asMap(dynamic value) {
     if (value is! Map) return null;
     return Map<String, dynamic>.from(value);
+  }
+
+  static String _friendlyLoginMessage(String? mensagem) {
+    final texto = (mensagem ?? '').toLowerCase();
+
+    if (texto.contains('e-mail') &&
+        (texto.contains('nao encontrado') || texto.contains('não encontrado'))) {
+      return 'Nao encontramos uma conta de empresa com esse e-mail. Confira o endereco digitado e tente novamente.';
+    }
+
+    if (texto.contains('senha')) {
+      return 'O e-mail ou a senha da empresa nao conferem. Tente novamente.';
+    }
+
+    if (mensagem != null && mensagem.trim().isNotEmpty) {
+      return mensagem;
+    }
+
+    return 'Nao foi possivel entrar na conta da empresa agora. Tente novamente em instantes.';
+  }
+
+  static String? _readMensagemFromException(FormatException exception) {
+    final text = exception.message;
+    if (text.contains('E-mail não encontrado')) {
+      return 'E-mail não encontrado';
+    }
+    if (text.contains('E-mail nao encontrado')) {
+      return 'E-mail nao encontrado';
+    }
+    if (text.contains('Senha inválida')) {
+      return 'Senha inválida';
+    }
+    if (text.contains('Senha invalida')) {
+      return 'Senha invalida';
+    }
+    return null;
   }
 }

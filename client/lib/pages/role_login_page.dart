@@ -56,12 +56,16 @@ class _RoleLoginPageState extends State<RoleLoginPage> {
     if (!mounted) return;
 
     if (entregador == null) {
-      _showError('Entregador nao encontrado ou senha invalida.');
+      _showError(
+        'Nao encontramos uma conta de entregador com esse e-mail ou a senha nao confere.',
+      );
       return;
     }
 
     if (entregador.idEntregador <= 0) {
-      _showError('Login retornou um ID de entregador invalido.');
+      _showError(
+        'Encontramos sua conta, mas nao conseguimos abrir a area do entregador agora. Tente entrar novamente.',
+      );
       return;
     }
 
@@ -84,13 +88,15 @@ class _RoleLoginPageState extends State<RoleLoginPage> {
     if (empresa == null) {
       _showError(
         EmpresaController.ultimoErroLogin ??
-            'Empresa nao encontrada ou senha invalida.',
+            'Nao encontramos uma conta de empresa com esse e-mail ou a senha nao confere.',
       );
       return;
     }
 
     if (empresa.idEmpresa <= 0) {
-      _showError('Login retornou um ID de empresa invalido.');
+      _showError(
+        'Encontramos sua conta, mas nao conseguimos abrir a area da empresa agora. Tente entrar novamente.',
+      );
       return;
     }
 

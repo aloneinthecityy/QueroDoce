@@ -94,7 +94,9 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Erro ao atualizar o perfil. Tente novamente.'),
+          content: Text(
+            'Nao deu para salvar as alteracoes do perfil agora. Tente novamente.',
+          ),
           backgroundColor: Colors.red,
         ),
       );
@@ -310,7 +312,7 @@ class _EmpresaPerfilTabState extends State<EmpresaPerfilTab> {
       if (path.startsWith('http://') || path.startsWith('https://')) {
         src = path;
       } else {
-        src = 'http://localhost/backend/$path';
+        src = 'http://localhost:8000/$path';
       }
     }
 

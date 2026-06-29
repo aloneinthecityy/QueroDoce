@@ -177,8 +177,9 @@ class _EmpresaPageState extends State<EmpresaPage> {
         if (snapshot.hasError) {
           return _state(
             icon: Icons.cloud_off_outlined,
-            title: 'Erro ao carregar pedidos',
-            message: 'Confira sua conexão e tente novamente.',
+            title: 'Nao conseguimos carregar seus pedidos',
+            message:
+                'Confira sua conexao e tente novamente em instantes.',
           );
         }
 
