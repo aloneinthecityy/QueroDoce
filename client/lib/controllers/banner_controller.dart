@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/banner.dart';
 
 class BannerController {
-  static const String baseUrl = "http://192.168.15.5/backend/Controller/CrudBanner.php";
+  static const String baseUrl = "http://localhost/backend/Controller/CrudBanner.php";
 
   static Future<BannerModel?> buscarUltimoBanner() async {
     try {

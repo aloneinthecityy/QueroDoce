@@ -93,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       final url = Uri.parse(
-        "http://192.168.15.5/backend/Controller/CrudUsuario.php",
+        "http://localhost/backend/Controller/CrudUsuario.php",
       );
 
       final response = await http.post(

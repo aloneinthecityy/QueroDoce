@@ -38,7 +38,7 @@ class _EmpresaProdutosTabState extends State<EmpresaProdutosTab> {
     if (imagem.startsWith('http://') || imagem.startsWith('https://')) {
       return imagem;
     }
-    return 'http://192.168.15.5/backend/$imagem';
+    return 'http://localhost/backend/$imagem';
   }
 
   Widget _buildHtmlImage(String src) {
