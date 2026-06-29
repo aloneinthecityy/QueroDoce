@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:app/services/notification_service.dart'; // 👈 adicionado
 
 class AcompanharEntregaPage extends StatefulWidget {
   final String pedidoId;
@@ -17,35 +18,34 @@ class AcompanharEntregaPage extends StatefulWidget {
 
 class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
   final MapController _mapController = MapController();
-  
-  // Estado para guardar a geolocalização do cliente
+
   LatLng? _posicaoCliente;
   String? _ultimoEnderecoBuscado;
   bool _buscandoEndereco = false;
-  bool _cameraAjustada = false; // Controla se a câmera já enquadrou o cliente e entregador
+  bool _cameraAjustada = false;
 
-  // Função assíncrona para transformar o texto do endereço em coordenadas LatLng
+  @override
+  void dispose() {
+    // 👇 Cancela a notificação persistente ao sair da tela
+    NotificationService.cancelarNotificacaoPersistente();
+    super.dispose();
+  }
+
   Future<void> _geocodeEndereco(String endereco) async {
     if (_buscandoEndereco || _ultimoEnderecoBuscado == endereco) return;
     _buscandoEndereco = true;
     _ultimoEnderecoBuscado = endereco;
 
     try {
-      // Remove a expressão "CEP 12345-678" do endereço de busca, pois a busca textual do
-      // Nominatim costuma falhar ou se confundir quando o CEP está incluído dessa forma.
       String queryEndereco = endereco.replaceAll(RegExp(r',?\s*CEP\s*\d{5}-?\d{3}', caseSensitive: false), '');
       queryEndereco = queryEndereco.trim();
 
       debugPrint('DEBUG - Geocodificando endereço limpo: "$queryEndereco" (Original: "$endereco")');
-      
-      // Adicionamos &countrycodes=br para restringir as buscas apenas ao Brasil
+
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(queryEndereco)}&countrycodes=br&format=json&limit=1'
       );
 
-      // Na Web (Chrome), não enviamos cabeçalhos de identificação para evitar problemas de CORS preflight.
-      // Em dispositivos móveis físicos (Android/iOS), enviamos o User-Agent para evitar que o
-      // Nominatim bloqueie a chamada identificando-a como bot anônimo da biblioteca HTTP Dart.
       final Map<String, String> headers = {};
       if (!kIsWeb) {
         headers['User-Agent'] = 'QueroDoceApp/1.0 (contato@querodoce.com)';
@@ -112,7 +112,16 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
           final localizacao = dados['localizacaoEntregador'];
           final String? enderecoCliente = dados['enderecoEntrega'];
 
-          // Se temos o endereço de entrega, dispara a geocodificação em segundo plano
+          // 👇 Reage ao status do pedido para notificação persistente
+          if (status == 'em_entrega') {
+            NotificationService.mostrarNotificacaoPersistente(
+              titulo: '🛵 Pedido a caminho!',
+              corpo: 'Seu pedido está sendo entregue agora.',
+            );
+          } else if (status == 'entregue' || status == 'cancelado') {
+            NotificationService.cancelarNotificacaoPersistente();
+          }
+
           if (enderecoCliente != null && enderecoCliente.isNotEmpty) {
             _geocodeEndereco(enderecoCliente);
           }
@@ -147,7 +156,6 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
           final double lng = localizacao['longitude'];
           final LatLng posicaoEntregador = LatLng(lat, lng);
 
-          // Atualiza a câmera para enquadrar o entregador e o cliente (uma única vez ao carregar a rota)
           if (!_cameraAjustada) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               if (_posicaoCliente != null) {
@@ -155,7 +163,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
                 _mapController.fitCamera(
                   CameraFit.bounds(
                     bounds: bounds,
-                    padding: const EdgeInsets.all(70.0), // margem de segurança nas bordas do mapa
+                    padding: const EdgeInsets.all(70.0),
                   ),
                 );
                 _cameraAjustada = true;
@@ -178,7 +186,6 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
               ),
               MarkerLayer(
                 markers: [
-                  // Marcador do entregador (Motinha)
                   Marker(
                     point: posicaoEntregador,
                     width: 50,
@@ -189,7 +196,6 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
                       size: 40,
                     ),
                   ),
-                  // Marcador da residência do cliente (Casa)
                   if (_posicaoCliente != null)
                     Marker(
                       point: _posicaoCliente!,
@@ -197,7 +203,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
                       height: 50,
                       child: const Icon(
                         Icons.home_work,
-                        color: Color(0xFF3F51B5), // Azul para contraste claro com a moto rosa
+                        color: Color(0xFF3F51B5),
                         size: 40,
                       ),
                     ),

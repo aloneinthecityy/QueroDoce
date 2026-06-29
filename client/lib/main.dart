@@ -12,6 +12,7 @@ import 'pages/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'pages/role_login_page.dart';
+import 'pages/acompanhar_entrega_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,16 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Color(0xFFFFF7FC),
       ),
       home: const SplashScreen(),
+      navigatorKey: NotificationService.navigatorKey,
+        onGenerateRoute: (settings) {
+          if (settings.name == '/acompanhamento') {
+            final pedidoId = settings.arguments as String;
+            return MaterialPageRoute(
+              builder: (_) => AcompanharEntregaPage(pedidoId: pedidoId),
+            );
+          }
+          return null;
+        },
     );
   }
 }
