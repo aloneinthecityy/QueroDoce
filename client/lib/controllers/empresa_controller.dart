@@ -6,7 +6,7 @@ import '../models/empresa.dart';
 
 class EmpresaController {
   static const String baseUrl =
-      'http://localhost:8000/Controller/CrudEmpresa.php';
+      'http://localhost/backend/Controller/CrudEmpresa.php';
 
   static String? ultimoErroLogin;
   static String? ultimoErroCadastro;
@@ -204,6 +204,7 @@ class EmpresaController {
     }
   }
 
+  /// Excluir empresa
   static Future<bool> excluirEmpresa(int idEmpresa) async {
     try {
       final url = Uri.parse('$baseUrl?oper=Excluir&id_empresa=$idEmpresa');

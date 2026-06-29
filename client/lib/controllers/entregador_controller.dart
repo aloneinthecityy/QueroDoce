@@ -8,7 +8,7 @@ import '../models/entregador.dart';
 
 class EntregadorController {
   static const String baseUrl =
-      'http://localhost:8000/Controller/CrudEntregador.php';
+      'http://localhost/backend/Controller/CrudEntregador.php';
 
   static String? ultimoErroLogin;
   static String? ultimoErroCadastro;
@@ -245,7 +245,7 @@ class EntregadorController {
       if (token == null) return;
 
       await http.post(
-        Uri.parse('http://localhost:8000/Controller/EnviarNotificacao.php'),
+        Uri.parse('http://localhost/backend/Controller/EnviarNotificacao.php'),
         body: {
           'token': token,
           'titulo': msg['titulo']!,
