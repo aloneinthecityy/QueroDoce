@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:app/services/notification_service.dart';
 
 class AcompanharEntregaPage extends StatefulWidget {
   final String pedidoId;
@@ -17,12 +18,19 @@ class AcompanharEntregaPage extends StatefulWidget {
 
 class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
   final MapController _mapController = MapController();
-  
+
   // Estado para guardar a geolocalização do cliente
   LatLng? _posicaoCliente;
   String? _ultimoEnderecoBuscado;
   bool _buscandoEndereco = false;
   bool _cameraAjustada = false; // Controla se a câmera já enquadrou o cliente e entregador
+
+  @override
+  void dispose() {
+    // Cancela a notificação persistente ao sair da tela
+    NotificationService.cancelarNotificacaoPersistente();
+    super.dispose();
+  }
 
   // Função assíncrona para transformar o texto do endereço em coordenadas LatLng
   Future<void> _geocodeEndereco(String endereco) async {
@@ -37,7 +45,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
       queryEndereco = queryEndereco.trim();
 
       debugPrint('DEBUG - Geocodificando endereço limpo: "$queryEndereco" (Original: "$endereco")');
-      
+
       // Adicionamos &countrycodes=br para restringir as buscas apenas ao Brasil
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(queryEndereco)}&countrycodes=br&format=json&limit=1'
@@ -112,7 +120,16 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
           final localizacao = dados['localizacaoEntregador'];
           final String? enderecoCliente = dados['enderecoEntrega'];
 
-          // Se temos o endereço de entrega, dispara a geocodificação em segundo plano
+          // Reage ao status do pedido para notificação persistente
+          if (status == 'em_entrega') {
+            NotificationService.mostrarNotificacaoPersistente(
+              titulo: '🛵 Pedido a caminho!',
+              corpo: 'Seu pedido está sendo entregue agora.',
+            );
+          } else if (status == 'entregue' || status == 'cancelado') {
+            NotificationService.cancelarNotificacaoPersistente();
+          }
+
           if (enderecoCliente != null && enderecoCliente.isNotEmpty) {
             _geocodeEndereco(enderecoCliente);
           }
@@ -178,7 +195,7 @@ class _AcompanharEntregaPageState extends State<AcompanharEntregaPage> {
               ),
               MarkerLayer(
                 markers: [
-                  // Marcador do entregador (Motinha)
+                // Marcador do entregador (Motinha)
                   Marker(
                     point: posicaoEntregador,
                     width: 50,

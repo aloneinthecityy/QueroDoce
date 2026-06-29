@@ -164,9 +164,6 @@ class _EntregadorPageState extends State<EntregadorPage> {
       } else if (novoStatus == 'entregue') {
         _pararRastreamento();
       }
-
-      if (!mounted) return;
-      _showSnackBar('Status atualizado para ${_statusLabel(novoStatus)}.');
     } catch (e) {
       if (!mounted) return;
       _showSnackBar('Erro ao atualizar status: $e', isError: true);

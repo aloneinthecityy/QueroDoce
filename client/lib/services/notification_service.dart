@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -13,6 +14,9 @@ class NotificationService {
   static final _messaging = FirebaseMessaging.instance;
   static final _localNotifications = FlutterLocalNotificationsPlugin();
   static const int _pedidoNotificationId = 42;
+  static const int _pedidoOngoingNotificationId = 99;
+
+  static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   static Future<void> initialize() async {
     FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
@@ -29,6 +33,19 @@ class NotificationService {
 
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationOpened);
+
+    final initialMessage = await _messaging.getInitialMessage();
+    if (initialMessage != null) {
+      final pedidoId = initialMessage.data['pedidoId'];
+      if (pedidoId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamed(
+            '/acompanhamento',
+            arguments: pedidoId,
+          );
+        });
+      }
+    }
   }
 
   static Future<void> _createChannels() async {
@@ -40,6 +57,13 @@ class NotificationService {
       'Pedidos',
       description: 'Atualizações do seu pedido',
       importance: Importance.max,
+    ));
+
+    await plugin?.createNotificationChannel(const AndroidNotificationChannel(
+      'orders_ongoing_channel',
+      'Pedido em andamento',
+      description: 'Notificação ativa enquanto seu pedido está a caminho',
+      importance: Importance.low,
     ));
   }
 
@@ -64,6 +88,7 @@ class NotificationService {
     final titulo = message.notification?.title;
     final corpo = message.notification?.body;
     final pedidoId = message.data['pedidoId'];
+    final status = message.data['status'];
 
     if (titulo == null || corpo == null) return;
 
@@ -83,6 +108,32 @@ class NotificationService {
     );
   }
 
+  static Future<void> mostrarNotificacaoPersistente({
+    required String titulo,
+    required String corpo,
+  }) async {
+    await _localNotifications.show(
+      _pedidoOngoingNotificationId,
+      titulo,
+      corpo,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'orders_ongoing_channel',
+          'Pedido em andamento',
+          importance: Importance.low,
+          priority: Priority.low,
+          ongoing: true,
+          autoCancel: false,
+          showWhen: false,
+        ),
+      ),
+    );
+  }
+
+  static Future<void> cancelarNotificacaoPersistente() async {
+    await _localNotifications.cancel(_pedidoOngoingNotificationId);
+  }
+
   static void _onForegroundMessage(RemoteMessage message) {
     showOrUpdatePedidoNotification(message);
   }
@@ -90,14 +141,14 @@ class NotificationService {
   static void _onNotificationOpened(RemoteMessage message) {
     final pedidoId = message.data['pedidoId'];
     if (pedidoId != null) {
-      // navega para a tela do pedido
+      navigatorKey.currentState?.pushNamed('/acompanhamento', arguments: pedidoId);
     }
   }
 
   static void _onNotificationTap(NotificationResponse response) {
     final pedidoId = response.payload;
     if (pedidoId != null) {
-      // navega para a tela do pedido
+      navigatorKey.currentState?.pushNamed('/acompanhamento', arguments: pedidoId);
     }
   }
 }

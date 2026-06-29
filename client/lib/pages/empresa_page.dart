@@ -6,6 +6,7 @@ import '../models/empresa.dart';
 import '../main.dart';
 import 'empresa_produtos_tab.dart';
 import 'empresa_perfil_tab.dart';
+import 'empresa_dashboard_tab.dart';
 
 class EmpresaPage extends StatefulWidget {
   final Empresa empresa;
@@ -36,7 +37,6 @@ class _EmpresaPageState extends State<EmpresaPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Escolhe o corpo da tela com base na aba selecionada
     Widget bodyWidget;
     switch (_selectedIndex) {
       case 0:
@@ -46,6 +46,9 @@ class _EmpresaPageState extends State<EmpresaPage> {
         bodyWidget = EmpresaProdutosTab(empresa: _empresa);
         break;
       case 2:
+        bodyWidget = EmpresaDashboardTab(empresa: _empresa);
+        break;
+      case 3:
         bodyWidget = EmpresaPerfilTab(
           empresa: _empresa,
           onProfileUpdated: (updatedEmpresa) {
@@ -115,8 +118,11 @@ class _EmpresaPageState extends State<EmpresaPage> {
               _buildNavItem(Icons.cookie_outlined, "Doces", _selectedIndex == 1, () {
                 setState(() => _selectedIndex = 1);
               }),
-              _buildNavItem(Icons.person, "Perfil", _selectedIndex == 2, () {
+              _buildNavItem(Icons.bar_chart, "Dashboard", _selectedIndex == 2, () {
                 setState(() => _selectedIndex = 2);
+              }),
+              _buildNavItem(Icons.person, "Perfil", _selectedIndex == 3, () {
+                setState(() => _selectedIndex = 3);
               }),
             ],
           ),
@@ -352,18 +358,12 @@ class _EmpresaPageState extends State<EmpresaPage> {
 
   String _statusLabel(String status) {
     switch (status) {
-      case 'aguardando_entregador':
-        return 'Aguardando entregador';
-      case 'aceito':
-        return 'Aceito';
-      case 'coletando':
-        return 'Coletando';
-      case 'em_entrega':
-        return 'Em entrega';
-      case 'entregue':
-        return 'Entregue';
-      default:
-        return 'Recebido';
+      case 'aguardando_entregador': return 'Aguardando entregador';
+      case 'aceito': return 'Aceito';
+      case 'coletando': return 'Coletando';
+      case 'em_entrega': return 'Em entrega';
+      case 'entregue': return 'Entregue';
+      default: return status;
     }
   }
 }
