@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'controllers/entregador_controller.dart';
 import 'main.dart';
 import 'models/entregador.dart';
+import 'utils/smooth_transitions.dart';
 
 class EntregadorPage extends StatefulWidget {
   const EntregadorPage({super.key, required this.entregadorId});
@@ -766,7 +767,10 @@ class _EntregadorPageState extends State<EntregadorPage> {
           ),
         ],
       ),
-      body: bodyWidget,
+      body: SmoothScreenSwitcher(
+        transitionKey: _selectedIndex,
+        child: bodyWidget,
+      ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: _brightPink,

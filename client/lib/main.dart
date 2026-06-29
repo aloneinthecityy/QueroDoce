@@ -13,6 +13,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'pages/role_login_page.dart';
 import 'pages/acompanhar_entrega_page.dart';
+import 'utils/smooth_transitions.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,19 +35,29 @@ class MyApp extends StatelessWidget {
       title: 'QueroDoce',
       theme: ThemeData(
         fontFamily: 'Serif',
-        scaffoldBackgroundColor: Color(0xFFFFF7FC),
+        scaffoldBackgroundColor: const Color(0xFFFFF7FC),
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            TargetPlatform.android: SmoothPageTransitionsBuilder(),
+            TargetPlatform.iOS: SmoothPageTransitionsBuilder(),
+            TargetPlatform.macOS: SmoothPageTransitionsBuilder(),
+            TargetPlatform.windows: SmoothPageTransitionsBuilder(),
+            TargetPlatform.linux: SmoothPageTransitionsBuilder(),
+            TargetPlatform.fuchsia: SmoothPageTransitionsBuilder(),
+          },
+        ),
       ),
       home: const SplashScreen(),
       navigatorKey: NotificationService.navigatorKey,
-        onGenerateRoute: (settings) {
-          if (settings.name == '/acompanhamento') {
-            final pedidoId = settings.arguments as String;
-            return MaterialPageRoute(
-              builder: (_) => AcompanharEntregaPage(pedidoId: pedidoId),
-            );
-          }
-          return null;
-        },
+      onGenerateRoute: (settings) {
+        if (settings.name == '/acompanhamento') {
+          final pedidoId = settings.arguments as String;
+          return MaterialPageRoute(
+            builder: (_) => AcompanharEntregaPage(pedidoId: pedidoId),
+          );
+        }
+        return null;
+      },
     );
   }
 }

@@ -7,6 +7,7 @@ import '../main.dart';
 import 'empresa_produtos_tab.dart';
 import 'empresa_perfil_tab.dart';
 import 'empresa_dashboard_tab.dart';
+import '../utils/smooth_transitions.dart';
 
 class EmpresaPage extends StatefulWidget {
   final Empresa empresa;
@@ -99,7 +100,10 @@ class _EmpresaPageState extends State<EmpresaPage> {
           ),
         ],
       ),
-      body: bodyWidget,
+      body: SmoothScreenSwitcher(
+        transitionKey: _selectedIndex,
+        child: bodyWidget,
+      ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           color: Color(0xFFFF2BA0),
