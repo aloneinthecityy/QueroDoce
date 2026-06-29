@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'controllers/entregador_controller.dart';
 import 'main.dart';
 import 'models/entregador.dart';
+import 'pages/entregador_dashboard_tab.dart';
 import 'utils/smooth_transitions.dart';
 
 class EntregadorPage extends StatefulWidget {
@@ -724,9 +725,11 @@ class _EntregadorPageState extends State<EntregadorPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bodyWidget = _selectedIndex == 0
-        ? _buildEntregasTab()
-        : _buildPerfilTab();
+    final bodyWidget = switch (_selectedIndex) {
+      0 => _buildEntregasTab(),
+      1 => EntregadorDashboardTab(entregadorId: widget.entregadorId),
+      _ => _buildPerfilTab(),
+    };
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -791,10 +794,16 @@ class _EntregadorPageState extends State<EntregadorPage> {
                 () => setState(() => _selectedIndex = 0),
               ),
               _buildNavItem(
-                Icons.person,
-                'Perfil',
+                Icons.bar_chart,
+                'Dashboard',
                 _selectedIndex == 1,
                 () => setState(() => _selectedIndex = 1),
+              ),
+              _buildNavItem(
+                Icons.person,
+                'Perfil',
+                _selectedIndex == 2,
+                () => setState(() => _selectedIndex = 2),
               ),
             ],
           ),
@@ -813,7 +822,7 @@ class _EntregadorPageState extends State<EntregadorPage> {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
